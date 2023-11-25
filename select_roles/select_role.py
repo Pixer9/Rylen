@@ -10,25 +10,25 @@ class Select(discord.ui.Select):
     def __init__(self):
         options = [
             discord.SelectOption(
-                label="Computer Science", emoji="", value=str(config.COMPUTER_SCIENCE_ROLE_ID), description="I have never touched grass in my life", default=False
+                label="Computer Science", emoji="💻", value=str(config.COMPUTER_SCIENCE_ROLE_ID), description="I have never touched grass in my life", default=False
             ),
             discord.SelectOption(
-                label="Electrical Engineering", emoji="", value=str(config.ELECTRICAL_ENGINEERING_ROLE_ID), description="I lick 9v batteries", default=False
+                label="Electrical Engineering", emoji="⚡", value=str(config.ELECTRICAL_ENGINEERING_ROLE_ID), description="I lick 9v batteries", default=False
             ),
             discord.SelectOption(
-                label="Cybersecurity", emoji="", value=str(config.CYBERSECURITY_ROLE_ID), description="**hacker noises intensify** I'm in!", default=False
+                label="Cybersecurity", emoji="🕵️", value=str(config.CYBERSECURITY_ROLE_ID), description="**hacker noises intensify** I'm in!", default=False
             ),
             discord.SelectOption(
-                label="Civil Engineering", emoji="", value=str(config.CIVIL_ENGINEERING_ROLE_ID), description="I'm not a real engineer", default=False
+                label="Civil Engineering", emoji="🏥", value=str(config.CIVIL_ENGINEERING_ROLE_ID), description="I'm not a real engineer", default=False
             ),
             discord.SelectOption(
-                label="Environmental Engineering", emoji="", value=str(config.ENV_ENGINEERING_ROLE_ID), description="It's not dirt, it's soil", default=False
+                label="Environmental Engineering", emoji="♻️", value=str(config.ENV_ENGINEERING_ROLE_ID), description="It's not dirt, it's soil", default=False
             ),
             discord.SelectOption(
-                label="Mechanical Engineering", emoji="", value=str(config.MECH_ENGINEERING_ROLE_ID), description="The engineering life chose me", default=False
+                label="Mechanical Engineering", emoji="⚙️", value=str(config.MECH_ENGINEERING_ROLE_ID), description="The engineering life chose me", default=False
             ),
             discord.SelectOption(
-                label="Alumni", emoji="", value=str(config.ALUMNI_ROLE_ID), description="*chuckles* I'm in danger!", default=False
+                label="Alumni", emoji="🎓", value=str(config.ALUMNI_ROLE_ID), description="*chuckles* I'm in danger!", default=False
             )
         ]
         super().__init__(placeholder="Select your role/major", min_values=1, max_values=None, options=options)
@@ -69,7 +69,7 @@ class SelectStudentOrg(discord.ui.Select):
     def __init__(self) -> None:
         options = [
             discord.SelectOption(
-                label="Computer Society", emoji="", value=str(config.COMPUTER_SOCIETY_ROLE_ID), description="Hackathons, Software Engineering, Web Development", default=False
+                label="Computer Society", emoji="💻", value=str(config.COMPUTER_SOCIETY_ROLE_ID), description="Hackathons, Software Engineering, Web Development", default=False
             ),
             discord.SelectOption(
                 label="Mechatronics Society", emoji="", value=str(config.MECHATRONICS_SOCIETY_ROLE_ID), description="Robotics, Mechatronics, Rylen go brrrr!", default=False

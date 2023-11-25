@@ -41,31 +41,31 @@ class RoleView(discord.ui.View):
             await interaction.user.add_roles(role)
             await interaction.response.send_message(f"You have been given the {role.name} role.", ephemeral=True)
 
-    @discord.ui.button(label="Computer Science", emoji="", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.COMPUTER_SCIENCE_ROLE_ID), row=1)
+    @discord.ui.button(label="Computer Science", emoji="💻", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.COMPUTER_SCIENCE_ROLE_ID), row=1)
     async def computer_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.handle_click(interaction, button)
 
-    @discord.ui.button(label="Electrical Engineering", emoji="", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.ELECTRICAL_ENGINEERING_ROLE_ID), row=1)
+    @discord.ui.button(label="Electrical Engineering", emoji="⚡", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.ELECTRICAL_ENGINEERING_ROLE_ID), row=1)
     async def electrical_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.handle_click(interaction, button)
 
-    @discord.ui.button(label="Cybersecurity", emoji="", style=discord.ButtonStyle.danger, custom_id=utils.custom_id(VIEW_NAME, config.CYBERSECURITY_ROLE_ID), row=1)
+    @discord.ui.button(label="Cybersecurity", emoji="🕵️", style=discord.ButtonStyle.danger, custom_id=utils.custom_id(VIEW_NAME, config.CYBERSECURITY_ROLE_ID), row=1)
     async def cyber_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.handle_click(interaction, button)
 
-    @discord.ui.button(label="Civil Engineering", emoji="", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.CIVIL_ENGINEERING_ROLE_ID), row=2)
+    @discord.ui.button(label="Civil Engineering", emoji="🏥", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.CIVIL_ENGINEERING_ROLE_ID), row=2)
     async def civil_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.handle_click(interaction, button)
 
-    @discord.ui.button(label="Environmental Engineering", emoji="", style=discord.ButtonStyle.success, custom_id=utils.custom_id(VIEW_NAME, config.ENV_ENGINEERING_ROLE_ID), row=2)
+    @discord.ui.button(label="Environmental Engineering", emoji="♻️", style=discord.ButtonStyle.success, custom_id=utils.custom_id(VIEW_NAME, config.ENV_ENGINEERING_ROLE_ID), row=2)
     async def environmental_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.handle_click(interaction, button)
 
-    @discord.ui.button(label="Mechanical Engineering", emoji="", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.MECH_ENGINEERING_ROLE_ID), row=2)
+    @discord.ui.button(label="Mechanical Engineering", emoji="⚙️", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.MECH_ENGINEERING_ROLE_ID), row=2)
     async def mechanical_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.handle_click(interaction, button)
 
-    @discord.ui.button(label="Alumni", emoji="", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.ALUMNI_ROLE_ID), row=3)
+    @discord.ui.button(label="Alumni", emoji="🎓", style=discord.ButtonStyle.primary, custom_id=utils.custom_id(VIEW_NAME, config.ALUMNI_ROLE_ID), row=3)
     async def alumni_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.handle_click(interaction, button)
 
