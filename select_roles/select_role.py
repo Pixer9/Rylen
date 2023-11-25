@@ -72,13 +72,13 @@ class SelectStudentOrg(discord.ui.Select):
                 label="Computer Society", emoji="💻", value=str(config.COMPUTER_SOCIETY_ROLE_ID), description="Hackathons, Software Engineering, Web Development", default=False
             ),
             discord.SelectOption(
-                label="Mechatronics Society", emoji="", value=str(config.MECHATRONICS_SOCIETY_ROLE_ID), description="Robotics, Mechatronics, Rylen go brrrr!", default=False
+                label="Mechatronics Society", emoji="🤖", value=str(config.MECHATRONICS_SOCIETY_ROLE_ID), description="Robotics, Mechatronics, Rylen go brrrr!", default=False
             ),
             discord.SelectOption(
-                label="IEEE", emoji="", value=str(config.IEEE_SOCIETY_ROLE_ID), description="Network, Develop Professionally, Get Involved!", default=False
+                label="IEEE", emoji="🛰️", value=str(config.IEEE_SOCIETY_ROLE_ID), description="Network, Develop Professionally, Get Involved!", default=False
             ),
             discord.SelectOption(
-                label="Society of Women Engineers", emoji="", value=str(config.SWE_SOCIETY_ROLE_ID), description="Advocate change, Make an Impact, Leave Your Mark", default=False
+                label="Society of Women Engineers", emoji="👩‍🚀", value=str(config.SWE_SOCIETY_ROLE_ID), description="Advocate change, Make an Impact, Leave Your Mark", default=False
             )
         ]
         super().__init__(placeholder="Select your student organization", min_values=1, max_values=None, options=options)
