@@ -12,3 +12,15 @@ message embed to the pre-designated channel alerting the server that a user has 
 
 YouTube API allows for users to perform YouTube searches from within Discord. Users can search for specific channels or videos, and a message embed is then generated and sent to the channel in which the command was invoked containing 
 a list of up to 3 items located from the search parameters. 
+
+!==================== IMPORTANT =========================!
+
+Upon installation, the config.py will need to be configured before the bot can be run. The config.py contains important information such as:
+
+- Channel and Role IDs specific to the Discord Guild
+- API keys/client secrets for all the necessary APIs
+- OpenAI model configurations such as:
+  - Bot personalities
+  - Model engine
+  - Model temperature bounds
+  - 
