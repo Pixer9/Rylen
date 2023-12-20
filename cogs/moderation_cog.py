@@ -174,7 +174,7 @@ class ModerationCog(commands.Cog):
             for event in loaded_data:
                 title = event['title']
                 title = title.replace("&amp;", "&")
-                if re.match(r'^\d{1,2}:\n{2} ]APap]\.M\. - \d{1,2}:\d{2} [APap]\.M\.#', title):
+                if re.match(r'^\d{1,2}:\d{2} [APap]\.M\. - \d{1,2}:\d{2} [APap]\.M\.$', title):
                     continue
                 if title == "Closed":
                     continue
