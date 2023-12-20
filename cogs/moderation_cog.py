@@ -1,15 +1,12 @@
 # moderation_cog.py
 from discord.ext import commands, tasks
-from discord.ui import Button, View
 from datetime import datetime
 from logger import logger
 from utility import config
-from typing import Dict
 import requests
 import discord
-import json
-import time
 import re
+
 
 class ModerationCog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -17,6 +14,7 @@ class ModerationCog(commands.Cog):
         self.calendar_events = []
         self.last_scrape = None
         self.update_calendar.start()
+
 
     @commands.command(name="information")
     async def information(self, ctx: commands.Context) -> None:
@@ -33,6 +31,7 @@ class ModerationCog(commands.Cog):
         embed.add_field(name="Geopy.py", value="https://pypi.org/projects/geopy/", inline=False)
         await ctx.send(embed=embed)
 
+
     @commands.command(name="rylen_help")
     async def rylen_help(self, ctx: commands.Context) -> None:
         """ For displaying bot functionality/commands """
@@ -45,6 +44,7 @@ class ModerationCog(commands.Cog):
         embed.add_field(name="openai_commands", value="Shows current list of available OpenAI API commands", inline=False)
         await ctx.send(embed=embed)
 
+
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
         """ Greet new members when they join """
@@ -54,19 +54,64 @@ class ModerationCog(commands.Cog):
             logger.info(f"User {member.name} has joined the server.")
             await channel.send(f"{member.display_name} has arrived!")
     
+
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member) -> None:
         """ Keep track of when a user leaves """
         logger.info(f"User {member.display_name} has left the server. {member.name}")
 
+        # Check if the member was kicked
+        if isinstance(member, discord.Member) and member.guild.me.guild_permissions.view_audit_log:
+            async for entry in member.guild.audit_logs(action=discord.AuditLogAction.kick, limit=1):
+                if entry.target == member:
+                    # Member was kicked, log and send embed
+                    await self.handle_kick(member, entry.user)
+                    break
+
+    
+    async def handle_kick(self, member: discord.Member, kicked_by: discord.User) -> None:
+        """ Handles and reports kick event """
+        logger.info(f"User {member.display_name} was kicked from the server by {kicked_by.display_name}")
+
+        admin_channel = member.guild.get_channel(config.ADMIN_ONLY_CHANNEL)
+
+        if admin_channel:
+            embed = discord.Embed(
+                title="User Kicked: {member.name}",
+                description=f"User {member.mention} has been kicked from the server.",
+                color=discord.Color.orange()
+            )
+
+            embed.set_thumbnail(url=member.avatar_url)
+            embed.add_field(name="Kicked by", value=kicked_by.mention, inline=False)
+
+            admin_channel.send(embed=embed)
+
+
     @commands.Cog.listener()
-    async def on_member_ban(self, guild: discord.Guild, user: discord.User) -> None:
+    async def on_member_ban(self, guild: discord.Guild, user: discord.User, banned_by: discord.User) -> None:
         """ Keep track of if a user gets banned """
         logger.info(f"User {user} has been banned from {guild}")
+
+        admin_channel = guild.get_channel(config.ADMIN_ONLY_CHANNEL)
+    
+        embed = discord.Embed(
+            title=f"User Banned: {user.name}",
+            description=f"User {user.mention} has been banned from the server",
+            color=discord.Color.red()
+        )
+
+        embed.set_thumbnail(url=user.avatar_url)
+        embed.add_field(name="Banned by", value=banned_by.mention, inline=False)
+
+        # Send notification to admin channel
+        await admin_channel.send(embed=embed)
+
 
     async def add_event(self, date: str, time: str, title: str, location: str, url: str) -> None:
         """ Helper function for adding events to list of live calendar events """
         self.calendar_events.append((date, time, title, location, url))
+
 
     async def show_calendar(self) -> None:
         """ Display calenar if there are valid events available """
@@ -77,6 +122,7 @@ class ModerationCog(commands.Cog):
         else:
             logger.error("Unable to create calendar embed. Calendar Events is empty.")
             await channel.send("Unable to create calendar embed. Calendar Events is empty.")
+
 
     async def build_calendar_embed(self) -> discord.Embed:
         """ Build the embed used for displaying the calendar events """
@@ -94,6 +140,7 @@ class ModerationCog(commands.Cog):
             embed.add_field(name="There are no listed events", value="LiveWhale may be down or there is an issue with the code. Check server status.")
         return embed
     
+
     @tasks.loop(hours=24)
     async def update_calendar(self) -> None:
         """ Update the posted calendar once every 24 hours """
@@ -114,6 +161,7 @@ class ModerationCog(commands.Cog):
         else:
             await self.show_calendar()
         logger.info("Calendar events successfully updated.")
+
 
     async def scrape_events(self) -> None:
         """ For scraping events off Tarleton's Official LiveWhale Calendar """
@@ -160,6 +208,7 @@ class ModerationCog(commands.Cog):
             logger.exception(f"JSON Error: {error}")
         except Exception as e:
             logger.exception(f"Error: {e}")
+
 
 async def setup(bot: commands.Bot):
     """ Initialize the ModerationCog and add it to the bot """

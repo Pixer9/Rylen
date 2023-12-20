@@ -20,7 +20,7 @@ class WeatherCog(commands.Cog):
         embed.set_footer(text="Information retrieved from weather.gov using publicly available API")
 
         cog = self.bot.get_cog("WeatherCog")
-        for command in cog.get_commands:
+        for command in cog.get_commands():
             if command.name == "weather_commands":
                 continue
             embed.add_field(name=command.name, value=command.help, inline=False)
