@@ -82,7 +82,7 @@ class ModerationCog(commands.Cog):
                 color=discord.Color.orange()
             )
 
-            embed.set_thumbnail(url=member.avatar_url)
+            embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
             embed.add_field(name="Kicked by", value=kicked_by.mention, inline=False)
 
             admin_channel.send(embed=embed)
@@ -101,7 +101,7 @@ class ModerationCog(commands.Cog):
             color=discord.Color.red()
         )
 
-        embed.set_thumbnail(url=user.avatar_url)
+        embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
         embed.add_field(name="Banned by", value=banned_by.mention, inline=False)
 
         # Send notification to admin channel
