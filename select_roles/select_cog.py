@@ -26,7 +26,7 @@ class SelectRoles(commands.Cog, name="Select Roles"):
     async def roles_message(self) -> None:
         try:
             logger.info("Updating the roles message seelect...")
-            channel = self.bot.get_channel(config.ROLES_CHANNEL_UD)
+            channel = self.bot.get_channel(config.ROLES_CHANNEL_ID)
             roles_message = None
             if channel:
                 async for message in channel.history(limit=50):

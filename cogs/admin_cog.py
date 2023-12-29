@@ -276,7 +276,7 @@ class AdminCog(commands.Cog):
             logger.error(f"Error occurred while trying to remove user from timeout: {e}")
 
     @commands.command(name="retrieve_message_data")
-    @commands.has_permissions(adminsitrator=True)
+    @commands.has_permissions(administrator=True)
     async def retrieve_message_data(self, ctx: commands.Context, channel_id: int, message_id: int) -> None:
         """
             Retrieve all pertinent data on a specific message and write it to file:

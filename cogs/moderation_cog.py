@@ -194,7 +194,7 @@ class ModerationCog(commands.Cog):
                     formatted_date = event['date']
                 else:
                     date = datetime.strptime(event['date_utc'], "%Y-%m-%d %H:%M:%S")
-                    formatted_date = date.strtime("%B %d")
+                    formatted_date = date.strftime("%B %d")
                     formatted_time = date.strftime("%I:%M%p").lower()
                 location = event['location'] if event['location'] else "Unknown"
                 url = event['url']
