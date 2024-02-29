@@ -11,7 +11,8 @@ import csv
 class OpenAICog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        openai.api_key = config.OPENAI_API_KEY
+        self.client = openai.OpenAI(api_key=config.OPENAI_API_KEY)
+        #openai.api_key = config.OPENAI_API_KEY
         self.model_engine = "gpt-3.5-turbo"
         self.temperature = 0.5
         self.persona = str(next(iter(config.bot_personalities)))
@@ -19,6 +20,8 @@ class OpenAICog(commands.Cog):
         self.conversation_memory = False
         self.cache_size = 10
         self.mention_user = True
+
+        self.rylen_triggers = ["Bad bot", "bad bot"]
 
         self.csv_file_name = "bot_chat_logs.csv"
         self.csv_field_names = ["user_name", "user_id", "query_message", "response_message", "prompt_tokens", "completion_tokens", "total_tokens"]
@@ -85,7 +88,7 @@ class OpenAICog(commands.Cog):
                 "chad": ("watching", "Your Mom's OnlyFans"),
                 "maga": ("watching", "Fox News"),
                 "liberal": ("watching", "CNN"),
-                "adaptive": ("Game", "The Last of Us")
+                "adaptive": ("watching", "The Last of Us")
             }
             activity_type, activity_name = activity_map.get(self.persona, ("listening", "Mi Gente - J Balvin, Willy William"))
             await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType[activity_type], name=activity_name))
@@ -105,10 +108,14 @@ class OpenAICog(commands.Cog):
         
         embed = discord.Embed(title="Available Models", colour=0x4f2d7f)
         embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
-        models = openai.Model.list()
+        #models = openai.Model.list()
+        models = self.client.models.list().data
 
-        for model in models['data']:
-            embed.add_field(name=f"Model: {model['id']}", value=f"Owner is {model['owned_by']}", inline=True)
+        for index, model in enumerate(models):
+            if index < 25:
+                embed.add_field(name=f"Model: {model.id}", value=f"Owner is {model.owned_by}", inline=True)
+            else:
+                break
         await ctx.send(embed=embed)
 
     @commands.command(name="change_model")
@@ -124,8 +131,9 @@ class OpenAICog(commands.Cog):
         embed = discord.Embed(title="Model Update", colour=0x4f2d7f)
         embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
 
-        available_models = openai.Model.list()
-        available_models = [model['id'] for model in available_models['data']]
+        #available_models = openai.Model.list()
+        available_models = self.client.models.list().data
+        available_models = [model.id for model in available_models]
 
         if model in available_models:
             previous_model = self.model_engine
@@ -179,15 +187,15 @@ class OpenAICog(commands.Cog):
             return
         
         image_query = ' '.join(query)
-        print(f"{image_query}")
+        #print(f"{image_query}")
         try:
-            response = openai.Image.create(
+            response = self.client.images.generate(
                 prompt=image_query,
                 n=1,
                 size="1024x1024"
             )
-            image_url = response['data'][0]['url']
-            print(response)
+            image_url = response.data[0].url
+            #print(response)
             await ctx.send(image_url)
         except Exception as e:
             logger.exception(f"Exception: {e}")
@@ -201,7 +209,7 @@ class OpenAICog(commands.Cog):
                     "user_name": message.author.name,
                     "user_id": message.author.id,
                     "query_message": message.content,
-                    "response_message": response.choices[0]["message"].content[:config.RESPONSE_CHUNK_SIZE],
+                    "response_message": response.choices[0].message.content[:config.RESPONSE_CHUNK_SIZE],
                     "prompt_tokens": response.usage.prompt_tokens,
                     "completion_tokens": response.usage.completion_tokens,
                     "total_tokens": response.usage.total_tokens
@@ -229,7 +237,7 @@ class OpenAICog(commands.Cog):
                 print(f"\nPrompt query before response: \n{prompt_query}")
 
                 try:
-                    response = openai.ChatCompletion.create(model=self.model_engine, messages=prompt_query, temperature=self.temperature)
+                    response = self.client.chat.completions.create(model=self.model_engine, messages=prompt_query, temperature=self.temperature)
                     response_message = response.choices[0].message.content
                     # Discord messages limited to 2000 in size, break into chunks if necessary
                     response_chunks = [response_message[i:i + config.RESPONSE_CHUNK_SIZE] for i in range(0, len(response_message), config.RESPONSE_CHUNK_SIZE)]

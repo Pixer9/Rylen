@@ -1,4 +1,4 @@
-from utils import config
+from utility import config
 
 # TODO - Move forecast.py methods into this file
 

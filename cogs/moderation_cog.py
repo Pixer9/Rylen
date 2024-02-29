@@ -37,11 +37,11 @@ class ModerationCog(commands.Cog):
         """ For displaying bot functionality/commands """
         embed = discord.Embed(title="Command Center", colour=0x4f2d7f)
         embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
-        embed.add_field(name="!information", vaue=f"Information about {config.BOT_NAME}, libraries, and used APIs", inline=False)
+        embed.add_field(name="!information", value=f"Information about {config.BOT_NAME}, libraries, and used APIs", inline=False)
         embed.add_field(name="!twitch_commands", value="Shows current list of available Twitch API commands", inline=False)
         embed.add_field(name="!weather_commands", value="Shows current list of available Weather API commands", inline=False)
         embed.add_field(name="!youtube_commands", value="Shows current list of available YouTube API commands", inline=False)
-        embed.add_field(name="openai_commands", value="Shows current list of available OpenAI API commands", inline=False)
+        embed.add_field(name="!openai_commands", value="Shows current list of available OpenAI API commands", inline=False)
         await ctx.send(embed=embed)
 
 

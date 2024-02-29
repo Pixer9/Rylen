@@ -354,7 +354,7 @@ class AdminCog(commands.Cog):
         if isinstance(error, commands.MissingPermissions):
             await ctx.send("You do not have permission to use this command.", ephemeral=True)
         else:
-            await ctx.send("Unknown error has occurred within the admin cog.", ephemeral=True)
+            await ctx.send(f"Error occured: {error}", ephemeral=True)
 
 async def setup(bot: commands.Bot):
     """ Initalize AdminCog an add it to the bot """

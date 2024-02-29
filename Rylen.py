@@ -38,4 +38,4 @@ class Rylen(commands.Bot):
 
 if __name__ == "__main__":
     bot = Rylen()
-    bot.run(config.discord_api_key)
+    bot.run(config.DISCORD_API_KEY)
