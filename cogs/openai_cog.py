@@ -2,9 +2,11 @@
 from discord.ext import commands, tasks
 from logger import logger
 from utility import config
+import datetime
 import discord
 import openai
 import csv
+import os
 
 # TODO - Clean up OpenAI commands. Parameters are passed, no reason to manually strip them from string
 
@@ -202,8 +204,15 @@ class OpenAICog(commands.Cog):
 
     async def data_logging(self, message: discord.Message, response) -> None:
         """ Method for logging interaction data (most importantly keeps track of token usage) """
+        chat_log_dir = "chat-logs"
+
+        if not os.path.exists(chat_log_dir):
+            os.makedirs(chat_log_dir)
+
+        chat_log_file = os.path.join(chat_log_dir, "chat-" + datetime.datetime.now().strftime("%m-%d-%y") + ".csv")
+        
         try:
-            with open(self.csv_file_name, mode='a', newline='') as csv_file:
+            with open(chat_log_file, mode='a', newline='') as csv_file:
                 writer = csv.DictWriter(csv_file, fieldnames=self.csv_field_names)
                 writer.writerow({
                     "user_name": message.author.name,
