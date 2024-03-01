@@ -2,8 +2,8 @@
 from discord.ext import commands, tasks
 from datetime import datetime
 from utility import config
+from utility import forecast
 from logger import logger
-import forecast
 import discord
 
 # TODO - have check_weather_alerts send notifications for active severe thunderstorm or tornado warning

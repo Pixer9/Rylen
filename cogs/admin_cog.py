@@ -33,7 +33,7 @@ class AdminCog(commands.Cog):
         except discord.Forbidden:
             await ctx.send("You do not have permission to use this command.", ephemeral=True)
         except Exception as e:
-            logger.exception(f"Error occurred while generating list of admin commnads: {e}")
+            logger.critical(f"Error occurred while generating list of admin commnads: {e}")
 
     @commands.command(name="active_bans")
     @commands.has_permissions(administrator=True)
@@ -82,7 +82,7 @@ class AdminCog(commands.Cog):
         except discord.Forbidden:
             await ctx.send("You do not have permission to use this command.", ephemeral=True)
         except Exception as e:
-            logger.exception(f"Error occurred while pulling list of timedout members: {e}")
+            logger.critical(f"Error occurred while pulling list of timedout members: {e}")
 
     @commands.command(name="estimate_prune")
     @commands.has_permissions(administrator=True)
@@ -107,7 +107,7 @@ class AdminCog(commands.Cog):
         except discord.TypeError:
             await ctx.send("Days must be a vaid integer.", ephemeral=True)
         except Exception as e:
-            logger.exception(f"Error occurred while generating estimated prune list: {e}")
+            logger.critical(f"Error occurred while generating estimated prune list: {e}")
 
     @commands.command(name="prune")
     @commands.has_permissions(administrator=True)
@@ -133,7 +133,7 @@ class AdminCog(commands.Cog):
         except discord.TypeError:
             await ctx.send("Days must be a valid integer.", ephemeral=True)
         except Exception as e:
-            logger.exception(f"Error occurred while pruning members: {e}")
+            logger.critical(f"Error occurred while pruning members: {e}")
 
     @commands.command(name="ban")
     @commands.has_permissions(administrator=True)
@@ -161,7 +161,7 @@ class AdminCog(commands.Cog):
         except discord.Forbidden:
             await ctx.send("You do not have permission to use this command.", ephemeral=True)
         except Exception as e:
-            logger.exception(f"Error occurred while trying to ban member {user.name}: {e}")
+            logger.critical(f"Error occurred while trying to ban member {user.name}: {e}")
 
     @commands.command(name="unban")
     @commands.has_permissions(administrator=True)
@@ -187,7 +187,7 @@ class AdminCog(commands.Cog):
         except discord.Forbidden:
             await ctx.send("You do not have permission to use this command.", ephemeral=True)
         except Exception as e:
-            logger.exception(f"Error occurred while trying to unban user: {e}")
+            logger.critical(f"Error occurred while trying to unban user: {e}")
 
     @commands.command(name="kick")
     @commands.has_permissions(administrator=True)
@@ -216,7 +216,7 @@ class AdminCog(commands.Cog):
         except discord.Forbidden:
             await ctx.send("You do not have permission to use this command.", ephemeral=True)
         except Exception as e:
-            logger.exception(f"Error occurred while trying to kick member: {e}")
+            logger.critical(f"Error occurred while trying to kick member: {e}")
 
     @commands.command(name="timeout")
     @commands.has_permissions(administrator=True)
@@ -246,7 +246,7 @@ class AdminCog(commands.Cog):
         except discord.Forbidden:
             await ctx.send("You do not have permission to use this command.", ephemeral=True)
         except Exception as e:
-            logger.exception(f"Error occurred while trying to put member in timeout: {e}")
+            logger.critical(f"Error occurred while trying to put member in timeout: {e}")
 
     @commands.command(name="untimeout")
     @commands.has_permissions(administrator=True)
@@ -347,7 +347,7 @@ class AdminCog(commands.Cog):
         except discord.NotFound:
             await ctx.send("Message not found.", ephemeral=True)
         except Exception as e:
-            logger.exception(f"Error occurred while parsing desired message: {e}")
+            logger.critical(f"Error occurred while parsing desired message: {e}")
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error) -> None:

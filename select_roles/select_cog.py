@@ -41,7 +41,7 @@ class SelectRoles(commands.Cog, name="Select Roles"):
             else:
                 await channel.send(embed=embed, view=SelectView())
         except Exception as e:
-            logger.exception(f"Error occurred while trying to update roles message: {e}")
+            logger.critical(f"Error occurred while trying to update roles message: {e}")
 
     async def build_embed(self) -> discord.Embed:
         embed = discord.Embed(title="Choose Your Major", description="If you do not see your major or organization listed below, please contact an admin to have it added.", colour=0x4f2d7f)

@@ -63,7 +63,7 @@ class Select(discord.ui.Select):
 
         except Exception as e:
             await interaction.response.send_message(f"An error has occurred, and a log has been generated for an admin. If error persists, please contact Kyle.", ephemeral=True)
-            logger.exception(f"Exception: {e}")
+            logger.critical(f"Exception: {e}")
 
 class SelectStudentOrg(discord.ui.Select):
     def __init__(self) -> None:
@@ -110,7 +110,7 @@ class SelectStudentOrg(discord.ui.Select):
 
         except Exception as e:
             await interaction.response.send_message(f"An error has occurred, and a log has been generated. If the error persists, please contact an Admin of the server.", ephemeral=True)
-            logger.exception(f"Exception when assigning org role: {e}")
+            logger.critical(f"Exception when assigning org role: {e}")
 
 class SelectView(discord.ui.View):
     def __init__(self):

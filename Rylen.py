@@ -29,12 +29,12 @@ class Rylen(commands.Bot):
                     await self.load_extension(f"{COGS_FOLDER}.{cog_name}")
                     logger.info(f"Loaded {cog_name}.py")
                 except Exception as e:
-                    logger.exception(f"Failed to load {cog_name} cog: {str(e)}")
+                    logger.critical(f"Failed to load {cog_name} cog: {str(e)}")
         try:
             await self.load_extension("select_roles.select_cog")
             logger.info("Lodeaded select_cog")
         except Exception as e:
-            logger.exception(f"Exception: {e}")
+            logger.critical(f"Exception: {e}")
 
 if __name__ == "__main__":
     bot = Rylen()

@@ -82,7 +82,7 @@ class TwitchCog(commands.Cog):
                 await ctx.send(f"Successfully added {user_data.display_name} to list of Twitch users.")
         except Exception as e:
             await ctx.send(f"Unable to locate user {twitch_user}. Check spelling and try again.")
-            logger.exception(f"Error occurred while trying to add Twitch user: {e}")
+            logger.critical(f"Error occurred while trying to add Twitch user: {e}")
 
     @commands.command(name="list_twitch")
     async def list_twitch(self, ctx: commands.Context) -> None:

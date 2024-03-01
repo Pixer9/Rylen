@@ -43,7 +43,7 @@ class OpenAICog(commands.Cog):
             await ctx.send(embed=embed)
         except Exception as e:
             await ctx.send(f"Error: {e}")
-            logger.exception(f"Exception: {e}")
+            logger.critical(f"Exception: {e}")
 
     @commands.command(name="temperature")
     async def temperature(self, ctx: commands.Context, temp: float) -> None:
@@ -200,7 +200,7 @@ class OpenAICog(commands.Cog):
             #print(response)
             await ctx.send(image_url)
         except Exception as e:
-            logger.exception(f"Exception: {e}")
+            logger.critical(f"Exception: {e}")
 
     async def data_logging(self, message: discord.Message, response) -> None:
         """ Method for logging interaction data (most importantly keeps track of token usage) """
@@ -224,7 +224,7 @@ class OpenAICog(commands.Cog):
                     "total_tokens": response.usage.total_tokens
                 })
         except Exception as e:
-            logger.exception(f"Error while writing to chat log file {self.csv_file_name}: {e}")
+            logger.critical(f"Error while writing to chat log file {self.csv_file_name}: {e}")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -266,7 +266,7 @@ class OpenAICog(commands.Cog):
                     await self.data_logging(message, response)
 
                 except Exception as e:
-                    logger.exception(f"Error: {e}")
+                    logger.critical(f"Error: {e}")
 
 async def setup(bot: commands.Bot):
     """ Initialize the OpenAI cog and add it to the bot """

@@ -203,11 +203,11 @@ class ModerationCog(commands.Cog):
                 await self.add_event(formatted_date, formatted_time, title, location, url)
 
         except requests.exceptions.RequestException as request_exc:
-            logger.exception(f"Requestion Exception: {request_exc}")
+            logger.critical(f"Requestion Exception: {request_exc}")
         except (ValueError, KeyError) as error:
-            logger.exception(f"JSON Error: {error}")
+            logger.critical(f"JSON Error: {error}")
         except Exception as e:
-            logger.exception(f"Error: {e}")
+            logger.critical(f"Error: {e}")
 
 
 async def setup(bot: commands.Bot):
