@@ -24,12 +24,12 @@ def get_gridpoints(location) -> Union[str, None]:
     """ Query weather.gov API for information related to lat/lon, retreived as json """
     client_location = geocode(location)
     try:
-        print("https://api.weather.gov/points/{0[0]},{0[1]}".format(client_location))
+        logger.info("https://api.weather.gov/points/{0[0]},{0[1]}".format(client_location))
         points = requests.get(url="https://api.weather.gov/points/{0[0]},{0[1]}".format(client_location), headers=points_headers)
         package = json.loads(points.text)
         url = package["properties"]["forecast"]
     except requests.HTTPError as http_error:
-        logger.exception(f"Error occurred while obtaining grid points: {http_error}")
+        logger.critical(f"Error occurred while obtaining grid points: {http_error}")
         return None
     return url
 
@@ -44,7 +44,7 @@ def get_forecast(location) -> Union[str, None]:
         forecast_data = json_data["properties"]["periods"]
         return forecast_data
     except requests.HTTPError as http_error:
-        logger.exception(f"Exception occurred while obtaining forecast: {http_error}")
+        logger.critical(f"Exception occurred while obtaining forecast: {http_error}")
 
 def get_forecast_hourly(location) -> Union[str, None]:
     """ Query weather.gov API for hourly forecast using appended url obtained from previous API call """
@@ -57,7 +57,7 @@ def get_forecast_hourly(location) -> Union[str, None]:
         forecast_data = json_data["properties"]["periods"]
         return forecast_data
     except requests.HTTPError as http_error:
-        logger.exception(f"Exception occurred while optaining hourly forecast: {http_error}")
+        logger.critical(f"Exception occurred while optaining hourly forecast: {http_error}")
 
 def get_all_alerts(location) -> Union[str, None]:
     """ Query weather.gov API for ALL active weather alerts for passed state - ex. TX """
@@ -67,7 +67,7 @@ def get_all_alerts(location) -> Union[str, None]:
         alert_data = json_data["features"]
         return alert_data
     except requests.HTTPError as http_error:
-        logger.exception(f"Exception occurred while obtaining all weather alerts: {http_error}")
+        logger.critical(f"Exception occurred while obtaining all weather alerts: {http_error}")
 
 def get_county_alerts(location) -> Union[str, None]:
     """ Query weather.gov API for specific county active weather alerts for passed city, state """
@@ -82,9 +82,9 @@ def get_county_alerts(location) -> Union[str, None]:
         logger.info(f"https://api.weather.gov/alerts/active?zone={county_ID}")
         alerts_data = json.loads(alerts.text)
     except requests.HTTPError as http_error:
-        logger.exception(f"Exception occurred while obtaining county alerts: {http_error}")
+        logger.critical(f"Exception occurred while obtaining county alerts: {http_error}")
         return None
     except json.JSONDecodeError as json_error:
-        logger.exception(f"Invalid type encountered while unpackaging: {json_error}")
+        logger.critical(f"Invalid type encountered while unpackaging: {json_error}")
         return None
     return alerts_data["features"]
