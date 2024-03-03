@@ -28,14 +28,22 @@ class Rylen(commands.Bot):
                 try:
                     await self.load_extension(f"{COGS_FOLDER}.{cog_name}")
                     logger.info(f"Loaded {cog_name}.py")
+                except commands.ExtensionAlreadyLoaded:
+                    logger.info(f"{cog_name}.py has already been loaded.")
+                except commands.ExtensionNotFound:
+                    logger.info(f"{cog_name}.py not found.")
                 except Exception as e:
                     logger.critical(f"Failed to load {cog_name} cog: {str(e)}")
         try:
             await self.load_extension("select_roles.select_cog")
             logger.info("Lodeaded select_cog")
+        except commands.ExtensionAlreadyLoaded:
+            logger.info(f"select_cog.py already loaded.")
+        except commands.ExtensionNotFound:
+            logger.info(f"select_cog.py not found.")
         except Exception as e:
             logger.critical(f"Exception: {e}")
 
 if __name__ == "__main__":
     bot = Rylen()
-    bot.run(config.DISCORD_API_KEY)
+    bot.run(token=config.DISCORD_API_KEY)
