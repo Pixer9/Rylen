@@ -5,13 +5,15 @@ from logger import logger
 import requests
 import json
 
+
 points_headers = {
     'User-Agent': 'Tarleton Discord Bot Weather Service Display',
     'Accept': 'application/geo-json',
     'From': 'kyleboatright9@gmail.com',
 }
 
-def geocode(client_location) -> list:
+
+def geocode(client_location) -> Union[list, None]:
     """ Get latitude and longitude of desired location [city, state] """
     geolocator = Nominatim(user_agent=points_headers['User-Agent'])
     location = geolocator.geocode(client_location)
@@ -19,6 +21,7 @@ def geocode(client_location) -> list:
         return None
     loc = [location.latitude, location.longitude]
     return loc
+
 
 def get_gridpoints(location) -> Union[str, None]:
     """ Query weather.gov API for information related to lat/lon, retreived as json """
@@ -33,6 +36,7 @@ def get_gridpoints(location) -> Union[str, None]:
         return None
     return url
 
+
 def get_forecast(location) -> Union[str, None]:
     """ Query weather.gov API for forecast using url obtained from previous API call """
     forecast_url = get_gridpoints(location)
@@ -45,6 +49,7 @@ def get_forecast(location) -> Union[str, None]:
         return forecast_data
     except requests.HTTPError as http_error:
         logger.critical(f"Exception occurred while obtaining forecast: {http_error}")
+
 
 def get_forecast_hourly(location) -> Union[str, None]:
     """ Query weather.gov API for hourly forecast using appended url obtained from previous API call """
@@ -59,6 +64,7 @@ def get_forecast_hourly(location) -> Union[str, None]:
     except requests.HTTPError as http_error:
         logger.critical(f"Exception occurred while optaining hourly forecast: {http_error}")
 
+
 def get_all_alerts(location) -> Union[str, None]:
     """ Query weather.gov API for ALL active weather alerts for passed state - ex. TX """
     try:
@@ -68,6 +74,7 @@ def get_all_alerts(location) -> Union[str, None]:
         return alert_data
     except requests.HTTPError as http_error:
         logger.critical(f"Exception occurred while obtaining all weather alerts: {http_error}")
+
 
 def get_county_alerts(location) -> Union[str, None]:
     """ Query weather.gov API for specific county active weather alerts for passed city, state """
