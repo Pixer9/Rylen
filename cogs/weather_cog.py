@@ -9,22 +9,26 @@ import discord
 # TODO - have check_weather_alerts send notifications for active severe thunderstorm or tornado warning
 
 class WeatherCog(commands.Cog):
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self._severe_weather_alerts = []
         #self.check_weather_alerts.start()
+
 
     @commands.command(name="weather_commands")
     async def weather_commands(self, ctx: commands.Context) -> None:
         embed = discord.Embed(title="Weather Commands", colour=0x00A8F3)
         embed.set_footer(text="Information retrieved from weather.gov using publicly available API")
 
-        cog = self.bot.get_cog("WeatherCog")
+        cog = self.bot.get_cog(self.__class__.__name__)
+
         for command in cog.get_commands():
             if command.name == "weather_commands":
                 continue
             embed.add_field(name=command.name, value=command.help, inline=False)
         await ctx.send(embed=embed)
+
 
     @commands.command(name="forecast")
     async def forecast(self, ctx: commands.Context, *args) -> None:
@@ -41,6 +45,7 @@ class WeatherCog(commands.Cog):
         else:
             await channel.send("Please input a valid location.")
 
+
     @commands.command(name="hourly")
     async def hourly(self, ctx: commands.Context, *args) -> None:
         """
@@ -54,6 +59,7 @@ class WeatherCog(commands.Cog):
             await self.forecast_hourly_embed(channel, client_location, hourly_forecast)
         else:
             await channel.send("Please input a valid location.")
+
 
     @commands.command(name="alerts")
     async def alerts(self, ctx: commands.Context, *args) -> None:
@@ -69,6 +75,7 @@ class WeatherCog(commands.Cog):
         else:
             await channel.send("Please enter a valid area.")
 
+
     async def get_forecast_data(self, ctx: commands.Context, location: str, fetch_function) -> None:
         """ Helper method for querying the Weather.gov API """
         channel = self.bot.get_channel(ctx.message.channel.id)
@@ -78,6 +85,7 @@ class WeatherCog(commands.Cog):
         await wait.delete()
         return forecast_data, channel
     
+
     async def forecast_embed(self, channel, location: str, data: dict) -> None:
         """ Build the embed for displaying the weather forecast """
         embed = discord.Embed(title=data['name'], description="Forecast for " + location, colour=0x4285F4)
@@ -88,6 +96,7 @@ class WeatherCog(commands.Cog):
         embed.add_field(name="Temperature", value=str(data['temperature']) + " F", inline=False)
         embed.add_field(name="Wind", value=data['windSpeed'] + " " + data['windDirection'], inline=True)
         await channel.send(embed=embed)
+
 
     async def forecast_hourly_embed(self, channel, location: str, forecast: dict) -> None:
         """ Build the embed for displaying the hourly weather forecast """
@@ -104,6 +113,7 @@ class WeatherCog(commands.Cog):
             embed.add_field(name=time, value=f"Weather: {weather}\nPrecipitation: {precip}\tTemperature: {temperature}\nWind: {wind}", inline=False)
         await channel.send(embed=embed)
 
+
     async def weather_alert(self, channel, alerts, area: str) -> None:
         """ Build the embed for displaying active weather alerts """
         embed = discord.Embed(title=f"Active weather alerts for {area}", colour=0xFF7F50)
@@ -117,6 +127,7 @@ class WeatherCog(commands.Cog):
         else:
             embed.add_field(name="No Alerts", value=f"There are currently no active weather alerts in {area}. Visit weather.gov for official information.", inline=False)
         await channel.send(embed=embed)
+
 
     @tasks.loop(minutes=1)
     async def check_weather_alerts(self) -> None:
@@ -142,6 +153,7 @@ class WeatherCog(commands.Cog):
                         embed.set_footer(text="Information retrieved from weather.gov using publicly available API")
                         embed.add_field(name=alert['properties']['headline'], value=alert['properties']['description'][:1024], inline=False)
                         await channel.send(embed=embed)
+
 
 async def setup(bot: commands.Bot):
     """ Initialize the WeatherCog and add it to the bot """

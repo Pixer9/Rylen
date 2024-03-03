@@ -34,7 +34,9 @@ class OpenAICog(commands.Cog):
         try:
             embed = discord.Embed(title="OpenAI Commands", colour=0x4f2d7f)
             embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
-            cog = self.bot.get_cog("OpenAICog")
+
+            cog = self.bot.get_cog(self.__class__.__name__)
+            
             for command in cog.get_commands():
                 if command.name == "openai_commands":
                     continue

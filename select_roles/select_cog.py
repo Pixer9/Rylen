@@ -5,14 +5,17 @@ from utility import config
 import discord
 
 class SelectRoles(commands.Cog, name="Select Roles"):
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.roles_message.start()
+
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
         """ Called when the cog is loaded """
         self.bot.add_view(SelectView())
+
 
     @commands.command(name="select_roles")
     @commands.has_permissions(administrator=True)
@@ -21,6 +24,7 @@ class SelectRoles(commands.Cog, name="Select Roles"):
         view = SelectView()
         embed = await self.build_embed()
         await ctx.send(embed=embed, view=view)
+
 
     @tasks.loop(hours=24)
     async def roles_message(self) -> None:
@@ -43,6 +47,7 @@ class SelectRoles(commands.Cog, name="Select Roles"):
         except Exception as e:
             logger.critical(f"Error occurred while trying to update roles message: {e}")
 
+
     async def build_embed(self) -> discord.Embed:
         embed = discord.Embed(title="Choose Your Major", description="If you do not see your major or organization listed below, please contact an admin to have it added.", colour=0x4f2d7f)
         embed.add_field(name="Major Role", value="Major Roles are limited to one per user. If you are a dual major, you will need to select just one from the list as selecting additional roles will cause the current one to be removed. If you accidentally remove your major role and want to reselect it, choose a different major on the list and then reselect the desired role.", inline=False)
@@ -50,6 +55,7 @@ class SelectRoles(commands.Cog, name="Select Roles"):
         embed.add_field(name="Notes", value="This role embed message resets every 24 hours. Your roles will remain unchanged, but you may notice that your selected major/org is no longer chosen in the fields below. Do not be alarmed, this is on purpose. If you encounter any bugs with the assignment, DM Kyle and let him know.", inline=False)
         embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
         return embed
+    
     
 async def setup(bot: commands.Bot):
     await bot.add_cog(SelectRoles(bot))

@@ -8,12 +8,14 @@ from utility import config
 import discord
 
 class TwitchCog(commands.Cog):
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.twitch = Twitch(config.TWITCH_CLIENT_ID, config.TWITCH_SECRET)
         self.notified_live: Dict[str, list] = {}
         self.twitch_users_to_watch = config.TWITCH_LIVE_USERS_LIST
         #self.check_twitch_streams.start()
+
 
     @commands.command(name="twitch_commands")
     async def twitch_commands(self, ctx: commands.Context) -> None:
@@ -24,12 +26,14 @@ class TwitchCog(commands.Cog):
         embed = discord.Embed(title="Twitch Commands", colour=0x9146FF)
         embed.set_footer(text="Information retreived using publicly available Twitch API")
 
-        cog = self.bot.get_cog("TwitchCog")
+        cog = self.bot.get_cog(self.__class__.__name__)
+
         for command in cog.get_commands():
             if command.name == "twitch_commands":
                 continue
             embed.add_field(name=command.name, value=command.help, inline=False)
         await ctx.send(embed=embed)
+
 
     @commands.command(name="live_twitch")
     async def live_twitch(self, ctx: commands.Context) -> None:
@@ -53,6 +57,7 @@ class TwitchCog(commands.Cog):
                 await ctx.send(embed=embed)
         else:
             await ctx.send("There are no live Twitch stream at this time.")
+
 
     @commands.command(name="add_twitch")
     async def add_twitch(self, ctx: commands.Context) -> None:
@@ -84,6 +89,7 @@ class TwitchCog(commands.Cog):
             await ctx.send(f"Unable to locate user {twitch_user}. Check spelling and try again.")
             logger.critical(f"Error occurred while trying to add Twitch user: {e}")
 
+
     @commands.command(name="list_twitch")
     async def list_twitch(self, ctx: commands.Context) -> None:
         """
@@ -103,10 +109,12 @@ class TwitchCog(commands.Cog):
             await ctx.send("There are no users on the live watch list.")
         await ctx.send(embed=embed)
 
+
     @commands.command(name="twitch_search")
     async def twitch_search(self, ctx: commands.Context) -> None:
         """ Manually search specific Twitch users """
         pass
+
 
     @tasks.loop(minutes=5)
     async def check_twitch_streams(self) -> None:
@@ -131,9 +139,11 @@ class TwitchCog(commands.Cog):
             if stream_info is None and user in self.notified_live:
                 del self.notified_live[user]
         
+
     async def authenticate_twitch(self) -> None:
         """ Authenticate the Twitch App """
         await self.twitch.authenticate_app([])
+
 
 async def setup(bot: commands.Bot):
     """ Initialize the TwitchCog and add it to the bot """
