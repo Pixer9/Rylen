@@ -7,8 +7,10 @@ import json
 import os
 
 class AdminCog(commands.Cog):
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+
 
     @commands.command(name="admin_commands")
     @commands.has_permissions(administrator=True)
@@ -18,22 +20,24 @@ class AdminCog(commands.Cog):
                 '!admin_commands'
         """
         if not ctx.author.guild_permissions.moderate_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         try:
             embed = discord.Embed(title="List of all available admin commands:", colour=0x4f2d7f)
             embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
 
-            cog = self.bot.get_cog("AdminCog")
+            cog = self.bot.get_cog(self.__class__.__name__)
+
             for command in cog.get_commands():
                 if command.name == "admin_commands":
                     continue
                 embed.add_field(name=command.name, value=command.help, inline=False)
             await ctx.send(embed=embed)
         except discord.Forbidden:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
         except Exception as e:
-            logger.critical(f"Error occurred while generating list of admin commnads: {e}")
+            logger.critical(f"Error occurred while generating list of admin commands: {e}")
+
 
     @commands.command(name="active_bans")
     @commands.has_permissions(administrator=True)
@@ -43,17 +47,18 @@ class AdminCog(commands.Cog):
                 '!active_bans'
         """
         if not ctx.author.guild_permissions.ban_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         
         guild = ctx.guild
         bans = await guild.bans()
 
         if not bans:
-            await ctx.send("There are no active bans on this server.", ephemeral=True)
+            await ctx.send("There are no active bans on this server.")
         else:
             ban_list = "\n".join([f"{ban.user.name}#{ban.user.discriminator} ({ban.user.id})" for ban in bans])
-            await ctx.send(f"List of banned users:\n{ban_list}", ephemeral=True)
+            await ctx.send(f"List of banned users:\n{ban_list}")
+
 
     @commands.command(name="active_timeouts")
     @commands.has_permissions(administrator=True)
@@ -63,7 +68,7 @@ class AdminCog(commands.Cog):
                 '!active_timeouts'
         """
         if not ctx.author.guild_permissions.moderate_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         
         try:
@@ -71,18 +76,24 @@ class AdminCog(commands.Cog):
             embed = discord.Embed(title="Users in Timeout", colour=0x4f2d7f)
             embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
             timeout_members_found = False
+            field_count = 0
             async for member in server.fetch_members(limit=None):
-                if member.is_timed_out:
-                    embed.add_field(name=member.display_name, value=f"Timeout expires: {member.timed_out_until}", inline=True)
-                    timeout_members_found = True
+                if member.is_timed_out and member.timed_out_until is not None:
+                    if field_count < 25:
+                        embed.add_field(name=member.display_name, value=f"Timeout expires (UTC): {member.timed_out_until}", inline=True)
+                        field_count += 1
+                        timeout_members_found = True
+                    else:
+                        break
 
             if not timeout_members_found:
-                embed.add_field(name=None, value="No uders found in timeout.", inline=True)
+                embed.add_field(name=None, value="No users found in timeout.", inline=True)
             await ctx.send(embed=embed)
         except discord.Forbidden:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
         except Exception as e:
             logger.critical(f"Error occurred while pulling list of timedout members: {e}")
+
 
     @commands.command(name="estimate_prune")
     @commands.has_permissions(administrator=True)
@@ -92,22 +103,32 @@ class AdminCog(commands.Cog):
                 '!estimate_prune days(required) roles(optional)'
         """
         if not ctx.author.guild_permissions.moderate_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         
         try:
             guild = ctx.guild
             estimated_number = await guild.estimate_pruned_members(days=days, roles=roles)
             if estimated_number > 0:
-                await ctx.send(f"{estimated_number} users have not logged on in the last {days} days and would be pruned.", ephemeral=True)
+                await ctx.send(f"{estimated_number} users have not logged on in the last {days} days and would be pruned.")
             else:
-                await ctx.send(f"No users have been inactive within {days} days.", ephemeral=True)
+                await ctx.send(f"No users have been inactive within {days} days.")
         except discord.Forbidden:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
-        except discord.TypeError:
-            await ctx.send("Days must be a vaid integer.", ephemeral=True)
+            logger.critical("You do not have permission to use this command.")
+            ctx.send("You do not have permission to use this command.")
+        except TypeError:
+            logger.critical("Days must be a vaid integer.")
+            ctx.send("Days must be a valid integer.")
+        except ValueError as ve:
+            logger.critical(f"Value error: {ve}")
+            ctx.send(f"Value Error: {ve}")
+        except discord.HTTPException as he:
+            logger.critical(f"HTTP Exception: {he}")
+            ctx.send(f"HTTP Exception: {he}")
         except Exception as e:
             logger.critical(f"Error occurred while generating estimated prune list: {e}")
+            ctx.send(f"Error occurred while generating estimated prune list: {e}")
+
 
     @commands.command(name="prune")
     @commands.has_permissions(administrator=True)
@@ -117,23 +138,26 @@ class AdminCog(commands.Cog):
                 '!prune days(required) reason(optional) roles(optional)
         """
         if not ctx.author.guild_permissions.kick_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         
         try:
             guild = ctx.guild
             amount_pruned = await guild.prune_members(days=days, roles=roles, reason=reason)
             if amount_pruned > 0:
-                await ctx.send(f"{amount_pruned} users have not logged on in the last {days} and have been pruned.", ephemeral=True)
+                await ctx.send(f"{amount_pruned} users have not logged on in the last {days} and have been pruned.")
                 logger.info(f"{amount_pruned} users have been pruned by {ctx.author.name}")
             else:
-                await ctx.send(f"No users have been inactive within {days} days.", ephemeral=True)
+                await ctx.send(f"No users have been inactive within {days} days.")
         except discord.Forbidden:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
-        except discord.TypeError:
-            await ctx.send("Days must be a valid integer.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
+        except TypeError:
+            await ctx.send("Days must be a valid integer.")
+        except discord.HTTPException as he:
+            await ctx.send(f"HTTP Exception: {he}")
         except Exception as e:
             logger.critical(f"Error occurred while pruning members: {e}")
+
 
     @commands.command(name="ban")
     @commands.has_permissions(administrator=True)
@@ -143,7 +167,7 @@ class AdminCog(commands.Cog):
                 '!ban user(required) reason(optional)'
         """
         if not ctx.author.guild_permissions.ban_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         
         try:
@@ -154,14 +178,15 @@ class AdminCog(commands.Cog):
                     break
             if _user is not None:
                 await _user.ban(reason=reason)
-                await ctx.send(f"{_user.name} has been banned. Reason: {reason}.", ephemeral=True)
+                await ctx.send(f"{_user.name} has been banned. Reason: {reason}.")
                 logger.info(f"{ctx.author.name} has banned {_user.name}.")
             else:
-                await ctx.send("User not found.", ephemeral=True)
+                await ctx.send("User not found.")
         except discord.Forbidden:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
         except Exception as e:
             logger.critical(f"Error occurred while trying to ban member {user.name}: {e}")
+
 
     @commands.command(name="unban")
     @commands.has_permissions(administrator=True)
@@ -171,7 +196,7 @@ class AdminCog(commands.Cog):
                 '!unban user(required) reason(optional)'
         """
         if not ctx.author.guild_permissions.ban_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         
         try:
@@ -180,14 +205,15 @@ class AdminCog(commands.Cog):
 
             if user_to_unban is not None:
                 await ctx.guild.unban(user_to_unban, reason=reason)
-                await ctx.send(f"{user_to_unban.name} has been unbanned.", ephemeral=True)
+                await ctx.send(f"{user_to_unban.name} has been unbanned.")
                 logger.info(f"{ctx.author.name} has unbanned {user_to_unban.name}.")
             else:
-                await ctx.send("User not found in the ban list.", ephemeral=True)
+                await ctx.send("User not found in the ban list.")
         except discord.Forbidden:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
         except Exception as e:
             logger.critical(f"Error occurred while trying to unban user: {e}")
+
 
     @commands.command(name="kick")
     @commands.has_permissions(administrator=True)
@@ -197,7 +223,7 @@ class AdminCog(commands.Cog):
                 '!kick user(required) reason(optional)'
         """
         if not ctx.author.guild_permissions.kick_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         
         try:
@@ -209,14 +235,15 @@ class AdminCog(commands.Cog):
 
             if _user is not None:
                 await _user.kick(reason=reason)
-                await ctx.send(f"{_user.name} has been kicked from the server.", ephemeral=True)
+                await ctx.send(f"{_user.name} has been kicked from the server.")
                 logger.info(f"{ctx.author.name} has kicked user {_user.name} from the server.")
             else:
-                await ctx.send("User not found.", ephemeral=True)
+                await ctx.send("User not found.")
         except discord.Forbidden:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
         except Exception as e:
             logger.critical(f"Error occurred while trying to kick member: {e}")
+
 
     @commands.command(name="timeout")
     @commands.has_permissions(administrator=True)
@@ -226,7 +253,7 @@ class AdminCog(commands.Cog):
                 '!timeout user(required) duration(required) reason(optional)'
         """
         if not ctx.author.guild_permissions.moderate_members:
-            await ctx.send("You do not have permisson to use this command.", ephemeral=True)
+            await ctx.send("You do not have permisson to use this command.")
             return
         
         try:
@@ -237,16 +264,20 @@ class AdminCog(commands.Cog):
                     break
 
             if _user is not None:
+                current_time = datetime.datetime.now().astimezone()
                 timeout = datetime.timedelta(minutes=duration)
-                await _user.timeout(timeout, reason=reason)
-                await ctx.send(f"{_user.name} has been put in timeout for {duration} minutes.", ephemeral=True)
+
+                await _user.timeout(current_time + timeout, reason=reason)
+                await ctx.send(f"{_user.name} has been put in timeout for {duration} minutes. Until {current_time + timeout}")
+
                 logger.info(f"{ctx.author.name} has put {_user.name} in timeout for {duration} minutes.")
             else:
-                await ctx.send("User not found.", ephemeral=True)
+                await ctx.send("User not found.")
         except discord.Forbidden:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
         except Exception as e:
             logger.critical(f"Error occurred while trying to put member in timeout: {e}")
+
 
     @commands.command(name="untimeout")
     @commands.has_permissions(administrator=True)
@@ -256,7 +287,7 @@ class AdminCog(commands.Cog):
                 '!untimeout user(required)'
         """
         if not ctx.author.guild_permissions.moderate_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         
         try:
@@ -267,13 +298,15 @@ class AdminCog(commands.Cog):
                     break
             
             if _user is not None:
-                await _user.timeout()
-                await ctx.send(f"{_user.name} has had their timeout removed.", ephemeral=True)
+                #await _user.timeout(until=None)
+                await _user.edit(timed_out_until=None)
+                await ctx.send(f"{_user.name} has had their timeout removed.")
                 logger.info(f"{ctx.author.name} has removed user {_user.name} from timeout.")
             else:
-                await ctx.send("User not found.", ephemeral=True)
+                await ctx.send("User not found.")
         except Exception as e:
             logger.error(f"Error occurred while trying to remove user from timeout: {e}")
+
 
     @commands.command(name="retrieve_message_data")
     @commands.has_permissions(administrator=True)
@@ -283,18 +316,18 @@ class AdminCog(commands.Cog):
                 '!retrieve_message_data channel_id(required) message_id(required)'
         """
         if not ctx.author.guild_permissions.moderate_members:
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
             return
         
         try:
             channel = self.bot.get_channel(channel_id)
             if not channel:
-                await ctx.send("Channel not found.", ephemeral=True)
+                await ctx.send("Channel not found.")
                 return
             
             message = await channel.fetch_message(message_id)
             if not message:
-                await ctx.send("Message not found.", ephemeral=True)
+                await ctx.send("Message not found.")
                 return
             
             message_data = {
@@ -345,16 +378,18 @@ class AdminCog(commands.Cog):
             os.remove(file_name)
 
         except discord.NotFound:
-            await ctx.send("Message not found.", ephemeral=True)
+            await ctx.send("Message not found.")
         except Exception as e:
             logger.critical(f"Error occurred while parsing desired message: {e}")
+
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error) -> None:
         if isinstance(error, commands.MissingPermissions):
-            await ctx.send("You do not have permission to use this command.", ephemeral=True)
+            await ctx.send("You do not have permission to use this command.")
         else:
-            await ctx.send(f"Error occured: {error}", ephemeral=True)
+            await ctx.send(f"Error occured: {error}")
+
 
 async def setup(bot: commands.Bot):
     """ Initalize AdminCog an add it to the bot """
