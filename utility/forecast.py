@@ -1,5 +1,6 @@
 # forecast.py
 from geopy.geocoders import Nominatim
+from utility.config import EMAIL
 from typing import Union
 from logger import logger
 import requests
@@ -9,7 +10,7 @@ import json
 points_headers = {
     'User-Agent': 'Tarleton Discord Bot Weather Service Display',
     'Accept': 'application/geo-json',
-    'From': 'kyleboatright9@gmail.com',
+    'From': EMAIL,
 }
 
 
