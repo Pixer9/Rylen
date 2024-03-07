@@ -19,7 +19,7 @@ class OpenAICog(commands.Cog):
         self.temperature = 0.5
         self.persona = str(next(iter(config.bot_personalities)))
         self.avail_personas = [persona for persona in config.bot_personalities]
-        self.conversation_memory = False
+        self.conversation_memory = True
         self.cache_size = 10
         self.mention_user = True
 
