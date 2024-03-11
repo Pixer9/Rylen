@@ -1,10 +1,13 @@
 # Rylen.py
 from discord.ext import commands
+from typing import Union
 from logger import logger
 from utility import config
+from dotenv import load_dotenv
 import discord
 import os
 
+load_dotenv('config/bot.env')
 
 class Rylen(commands.Bot):
     def __init__(self) -> None:
@@ -13,6 +16,45 @@ class Rylen(commands.Bot):
             intents=discord.Intents.all(),
             activity=discord.Activity(name="Vibes", type=discord.ActivityType.competing)
         )
+        self.cogs_dir = self.find_cogs_directory(os.getcwd())
+
+        @self.command(name="load")
+        @commands.has_permissions(administrator=True)
+        async def load(ctx: commands.Context, extension_name: str) -> None:
+            try:
+                await self.load_extension(f"cogs.{extension_name}")
+                await ctx.send(f"Loaded extension: {extension_name}")
+            except commands.ExtensionAlreadyLoaded:
+                await ctx.send(f"{extension_name}.py has already been loaded")
+            except commands.ExtensionNotFound:
+                await ctx.send(f"{extension_name}.py not found.")
+            except Exception as e:
+                logger.critical(f"Exception: {e} while loading cog.")
+
+
+        @self.command(name="unload")
+        @commands.has_permissions(administrator=True)
+        async def unload(ctx: commands.Context, extension_name: str) -> None:
+            try:
+                await self.unload_extension(f"cogs.{extension_name}")
+                await ctx.send(f"Unloaded extension: {extension_name}")
+            except commands.ExtensionNotFound:
+                await ctx.send(f"{extension_name}.py not found.")
+            except Exception as e:
+                logger.critical(f"Exception: {e} while unloading cog.")
+
+
+        @self.command(name="reload")
+        @commands.has_permissions(administrator=True)
+        async def reload(ctx: commands.Context, extension_name: str) -> None:
+            try:
+                await self.reload_extension(f"cogs.{extension_name}")
+                await ctx.send(f"Reloaded extension: {extension_name}")
+            except commands.ExtensionNotFound:
+                await ctx.send(f"{extension_name}.py not found.")
+            except Exception as e:
+                logger.critical(f"Exception: {e} while reloading cog.")
+
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -21,8 +63,8 @@ class Rylen(commands.Bot):
         logger.info(f"Logged in as {self.user.name}")
         await self.wait_until_ready()
 
-        for file_name in os.listdir(config.COGS_FOLDER):
-            if file_name.endswith(".py"):
+        for file_name in os.listdir(await self.cogs_dir):
+            if file_name.endswith("cog.py"):
                 cog_name = file_name[:-3]
                 try:
                     await self.load_extension(f"{config.COGS_FOLDER}.{cog_name}")
@@ -44,42 +86,11 @@ class Rylen(commands.Bot):
             logger.critical(f"Exception: {e}")
 
     
-    @commands.Cog.listener()
-    @commands.has_permissions(administrator=True)
-    async def load(self, ctx: commands.Context, extension_name: str) -> None:
-        try:
-            await self.load_extension(f"cogs.{extension_name}")
-            await ctx.send(f"Loaded extension: {extension_name}")
-        except commands.ExtensionAlreadyLoaded:
-            await ctx.send(f"{extension_name}.py has already been loaded")
-        except commands.ExtensionNotFound:
-            await ctx.send(f"{extension_name}.py not found.")
-        except Exception as e:
-            logger.critical(f"Exception: {e} while loading cog.")
-
-    
-    @commands.Cog.listener()
-    @commands.has_permissions(administrator=True)
-    async def unload(self, ctx: commands.Context, extension_name: str) -> None:
-        try:
-            await self.unload_extension(f"cogs.{extension_name}")
-            await ctx.send(f"Unloaded extension: {extension_name}")
-        except commands.ExtensionNotFound:
-            await ctx.send(f"{extension_name}.py not found.")
-        except Exception as e:
-            logger.critical(f"Exception: {e} while unloading cog.")
-
-    
-    @commands.Cog.listener()
-    @commands.has_permissions(administrator=True)
-    async def reload(self, ctx: commands.Context, extension_name: str) -> None:
-        try:
-            await self.reload_extension(f"cogs.{extension_name}")
-            await ctx.send(f"Reloaded extension: {extension_name}")
-        except commands.ExtensionNotFound:
-            await ctx.send(f"{extension_name}.py not found.")
-        except Exception as e:
-            logger.critical(f"Exception: {e} while reloading cog.")
+    async def find_cogs_directory(self, start_dir: str) -> Union[str, None]:
+        for dirpath, dirnames, _ in os.walk(start_dir):
+            if config.COGS_FOLDER in dirnames:
+                return os.path.join(dirpath, config.COGS_FOLDER)
+        return None
 
 
 if __name__ == "__main__":
