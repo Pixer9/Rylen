@@ -16,4 +16,4 @@ DISCORD_API_KEY = os.getenv('DISCORD_API_KEY')
 COGS_FOLDER = 'cogs'
 
 # Main .env file where secrets are kept
-ENV_FILE = 'cogs/bot.env'
+ENV_FILE = 'config/bot.env'
