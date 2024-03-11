@@ -4,8 +4,9 @@ __pycache__/
 *$py.class
 
 config.py
-*.csv
-*.txt
+logs/
+chat-logs/
+*.env
 
 # C extensions
 *.so
