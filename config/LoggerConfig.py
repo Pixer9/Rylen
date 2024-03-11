@@ -1,8 +1,9 @@
+import os
 
-# Log prefix - current uses bot name
-LOG_PREFIX = "Rylen"
+# Log prefix - currently uses bot name
+LOG_PREFIX = os.getenv('BOT_NAME')
 
-# Director name of where logs will be stored
+# Directory name of where logs will be stored
 LOGS_DIR = "logs"
 
 # When do you want logs to be rolled over?
