@@ -2,7 +2,8 @@
 from discord.ext import commands, tasks
 from datetime import datetime
 from logger import logger
-from utility import config
+#from utility import config
+from config import ModerationConfig as mc, BotConfig as bc
 import requests
 import discord
 import re
@@ -19,10 +20,10 @@ class ModerationCog(commands.Cog):
     @commands.command(name="information")
     async def information(self, ctx: commands.Context) -> None:
         """ For retrieving bot information related to Rylen """
-        embed = discord.Embed(title="Information", description=f"Information about {config.BOT_NAME}, libraries, and used APIs", colour=0x006400)
-        embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
-        embed.add_field(name=f"{config.BOT_NAME}", value=f"{config.BOT_NAME} is an open source Discord bot created for fun by students from the Tarleton Mayfield College of Engineering. You are free to use this bot on your own server, all we ask is that you reference where bot originated.", inline=False)
-        embed.add_field(name=f"{config.BOT_NAME} Bot GitHub", value=f"{config.GITHUB_REPOSITORY}", inline=False)
+        embed = discord.Embed(title="Information", description=f"Information about {bc.BOT_NAME}, libraries, and used APIs", colour=0x006400)
+        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.add_field(name=f"{bc.BOT_NAME}", value=f"{bc.BOT_NAME} is an open source Discord bot created for fun by students from the Tarleton Mayfield College of Engineering. You are free to use this bot on your own server, all we ask is that you reference where bot originated.", inline=False)
+        embed.add_field(name=f"{bc.BOT_NAME} Bot GitHub", value=f"{bc.GITHUB_REPOSITORY}", inline=False)
         embed.add_field(name="OpenAI API", value="https://openai.com/blog/openai-api - Paid Subscription Key Required", inline=False)
         embed.add_field(name="National Weather Service API", value="https://api.weather.gov/ - Public Domain", inline=False)
         embed.add_field(name="Discord API", value="https://discordpy.readthedocs.io/en/stable/api.html", inline=False)
@@ -36,8 +37,8 @@ class ModerationCog(commands.Cog):
     async def rylen_help(self, ctx: commands.Context) -> None:
         """ For displaying bot functionality/commands """
         embed = discord.Embed(title="Command Center", colour=0x4f2d7f)
-        embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
-        embed.add_field(name="!information", value=f"Information about {config.BOT_NAME}, libraries, and used APIs", inline=False)
+        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.add_field(name="!information", value=f"Information about {bc.BOT_NAME}, libraries, and used APIs", inline=False)
         embed.add_field(name="!twitch_commands", value="Shows current list of available Twitch API commands", inline=False)
         embed.add_field(name="!weather_commands", value="Shows current list of available Weather API commands", inline=False)
         embed.add_field(name="!youtube_commands", value="Shows current list of available YouTube API commands", inline=False)
@@ -73,7 +74,7 @@ class ModerationCog(commands.Cog):
         """ Handles and reports kick event """
         logger.info(f"User {member.display_name} was kicked from the server by {kicked_by.display_name}")
 
-        admin_channel = member.guild.get_channel(config.ADMIN_ONLY_CHANNEL)
+        admin_channel = member.guild.get_channel(mc.ADMIN_ONLY_CHANNEL)
 
         if admin_channel:
             embed = discord.Embed(
@@ -93,7 +94,7 @@ class ModerationCog(commands.Cog):
         """ Keep track of if a user gets banned """
         logger.info(f"User {user} has been banned from {guild}")
 
-        admin_channel = guild.get_channel(config.ADMIN_ONLY_CHANNEL)
+        admin_channel = guild.get_channel(mc.ADMIN_ONLY_CHANNEL)
     
         embed = discord.Embed(
             title=f"User Banned: {user.name}",
@@ -117,7 +118,7 @@ class ModerationCog(commands.Cog):
         """ Display calenar if there are valid events available """
         if self.calendar_events:
             embed = await self.build_calendar_embed()
-            channel = self.bot.get_channel(config.CALENDAR_CHANNEL_ID)
+            channel = self.bot.get_channel(mc.CALENDAR_CHANNEL_ID)
             await channel.send(embed=embed)
         else:
             logger.error("Unable to create calendar embed. Calendar Events is empty.")
@@ -127,7 +128,7 @@ class ModerationCog(commands.Cog):
     async def build_calendar_embed(self) -> discord.Embed:
         """ Build the embed used for displaying the calendar events """
         embed = discord.Embed(title="Upcoming Events:", colour=0x4f2d7f, timestamp=datetime.now())
-        embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
         events_added = 0
 
         if self.calendar_events:
@@ -137,7 +138,7 @@ class ModerationCog(commands.Cog):
                 embed.add_field(name=title, value=f"When: {date}\tat\t{time}\nWhere: {location}\nOfficial Calendar: {url}", inline=False)
                 events_added += 1
         else:
-            embed.add_field(name="There are no listed events", value="LiveWhale may be down or there is an issue with the code. Check server status.")
+            embed.add_field(name="There are no listed events", value="LiveWhale may be down or the server may be experiencing connectivity issues.")
         return embed
     
 
@@ -149,7 +150,7 @@ class ModerationCog(commands.Cog):
         await self.scrape_events()
 
         calendar_message = None
-        channel = self.bot.get_channel(config.CALENDAR_CHANNEL_ID)
+        channel = self.bot.get_channel(mc.CALENDAR_CHANNEL_ID)
         async for message in channel.history(limit=50):
             if message.embeds:
                 if message.author == self.bot.user and message.embeds[0].title.__contains__("Upcoming Events:"):
@@ -167,7 +168,7 @@ class ModerationCog(commands.Cog):
         """ For scraping events off Tarleton's Official LiveWhale Calendar """
         try:
             self.calendar_events = []
-            response = requests.get(config.TARGET_URL, timeout=3)
+            response = requests.get(mc.TARGET_URL, timeout=3)
             response.raise_for_status()
             loaded_data = response.json()
 

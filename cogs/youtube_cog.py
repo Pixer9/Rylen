@@ -1,13 +1,14 @@
 # youtube_cog.py
 from googleapiclient.discovery import build
 from discord.ext import commands, tasks
-from utility import config
+#from utility import config
+from config import YouTubeConfig as ytc
 import discord
 
 class YouTubeCog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.youtube = build('youtube', 'v3', developerKey=config.YOUTUBE_API_KEY)
+        self.youtube = build('youtube', 'v3', developerKey=ytc.YOUTUBE_API_KEY)
 
     @commands.command(name="youtube_commands")
     async def youtube_commands(self, ctx: commands.Context) -> None:

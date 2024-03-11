@@ -1,7 +1,8 @@
 # openai_cog.py
 from discord.ext import commands, tasks
 from logger import logger
-from utility import config
+#from utility import config
+from config import OpenAIConfig as aic, BotConfig as bc
 import datetime
 import discord
 import openai
@@ -13,12 +14,12 @@ import os
 class OpenAICog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.client = openai.OpenAI(api_key=config.OPENAI_API_KEY)
+        self.client = openai.OpenAI(api_key=aic.OPENAI_API_KEY)
         #openai.api_key = config.OPENAI_API_KEY
         self.model_engine = "gpt-3.5-turbo"
         self.temperature = 0.5
-        self.persona = str(next(iter(config.bot_personalities)))
-        self.avail_personas = [persona for persona in config.bot_personalities]
+        self.persona = str(next(iter(aic.bot_personalities)))
+        self.avail_personas = [persona for persona in aic.bot_personalities]
         self.conversation_memory = True
         self.cache_size = 10
         self.mention_user = True
@@ -33,7 +34,7 @@ class OpenAICog(commands.Cog):
         """ Display an embed that contains all available OpenAI API commands """
         try:
             embed = discord.Embed(title="OpenAI Commands", colour=0x4f2d7f)
-            embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+            embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
 
             cog = self.bot.get_cog(self.__class__.__name__)
             
@@ -41,7 +42,7 @@ class OpenAICog(commands.Cog):
                 if command.name == "openai_commands":
                     continue
                 embed.add_field(name=command.name, value=command.help, inline=False)
-            embed.add_field(name=f"Talk to {config.BOT_NAME}", value=f"Just @{config.BOT_NAME} in the 'rylens-house' channel to chat it up.", inline=False)
+            embed.add_field(name=f"Talk to {bc.BOT_NAME}", value=f"Just @{bc.BOT_NAME} in the 'rylens-house' channel to chat it up.", inline=False)
             await ctx.send(embed=embed)
         except Exception as e:
             await ctx.send(f"Error: {e}")
@@ -55,13 +56,13 @@ class OpenAICog(commands.Cog):
         """
         message_parts = ctx.message.content.split()
         embed = discord.Embed(title="Temperature Updated", colour=0x4f2d7f)
-        embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
         try:
             temp = float(message_parts[1])
             if len(message_parts) < 2:
-                embed.add_field(name="Invalid temperature value", value=f"Please enter a number between {config.TEMP_LOWER_LIMIT} and {config.TEMP_UPPER_LIMIT} after the command, ex. - '!temperature 0.7'")
-            elif temp < config.TEMP_LOWER_LIMIT or temp > config.TEMP_UPPER_LIMIT:
-                embed.add_field(name="Invalid temperature value", value=f"Float value must be between {config.TEMP_LOWER_LIMIT} and {config.TEMP_UPPER_LIMIT}")
+                embed.add_field(name="Invalid temperature value", value=f"Please enter a number between {aic.TEMP_LOWER_LIMIT} and {aic.TEMP_UPPER_LIMIT} after the command, ex. - '!temperature 0.7'")
+            elif temp < aic.TEMP_LOWER_LIMIT or temp > aic.TEMP_UPPER_LIMIT:
+                embed.add_field(name="Invalid temperature value", value=f"Float value must be between {aic.TEMP_LOWER_LIMIT} and {aic.TEMP_UPPER_LIMIT}")
             else:
                 self.temperature = temp
                 embed.add_field(name="Temperature changed to", value=self.temperature)
@@ -81,7 +82,7 @@ class OpenAICog(commands.Cog):
             return
         
         embed = discord.Embed(title="Personality Updated", colour=0x4f2d7f)
-        embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
 
         if persona not in self.avail_personas:
             embed.add_field(name="Invalid persona given", value="Please choose from the available personas.", inline=False)
@@ -111,7 +112,7 @@ class OpenAICog(commands.Cog):
             return
         
         embed = discord.Embed(title="Available Models", colour=0x4f2d7f)
-        embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
         #models = openai.Model.list()
         models = self.client.models.list().data
 
@@ -133,7 +134,7 @@ class OpenAICog(commands.Cog):
             return
         
         embed = discord.Embed(title="Model Update", colour=0x4f2d7f)
-        embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
 
         #available_models = openai.Model.list()
         available_models = self.client.models.list().data
@@ -163,7 +164,7 @@ class OpenAICog(commands.Cog):
         self.conversation_memory = not self.conversation_memory
         embed = discord.Embed(title="Memory Cache", colour=0x4f2d7f)
         embed.add_field(name="Remember conversation history?", value="Yes" if self.conversation_memory else "No")
-        embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
         await ctx.send(embed=embed)
 
     @commands.command(name="parameters")
@@ -173,7 +174,7 @@ class OpenAICog(commands.Cog):
                 '!parameters'
         """
         embed = discord.Embed(title="Current OpenAI parameters for API calls", colour=0x4f2d7f)
-        embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
         embed.add_field(name="Model Engine: ", value=self.model_engine, inline=False)
         embed.add_field(name="Model Persona: ", value=self.persona, inline=False)
         embed.add_field(name="Tepmerature: ", value=self.temperature, inline=False)
@@ -187,7 +188,7 @@ class OpenAICog(commands.Cog):
             Generate an image using the passed parameters (admin only)
                 '!image_query'
         """
-        if ctx.channel.id != config.IMAGE_GENERATION_CHANNEL and not ctx.author.guild_permissions.moderate_members:
+        if ctx.channel.id != aic.IMAGE_GENERATION_CHANNEL and not ctx.author.guild_permissions.moderate_members:
             return
         
         image_query = ' '.join(query)
@@ -220,7 +221,7 @@ class OpenAICog(commands.Cog):
                     "user_name": message.author.name,
                     "user_id": message.author.id,
                     "query_message": message.content,
-                    "response_message": response.choices[0].message.content[:config.RESPONSE_CHUNK_SIZE],
+                    "response_message": response.choices[0].message.content[:aic.RESPONSE_CHUNK_SIZE],
                     "prompt_tokens": response.usage.prompt_tokens,
                     "completion_tokens": response.usage.completion_tokens,
                     "total_tokens": response.usage.total_tokens
@@ -231,7 +232,7 @@ class OpenAICog(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         """ Main interaction method for Rylen """
-        if message.author == self.bot.user or message.channel.id not in config.BOT_ALLOWED_CHANNELS:
+        if message.author == self.bot.user or message.channel.id not in aic.BOT_ALLOWED_CHANNELS:
             return
         
         if message.attachments:
@@ -240,10 +241,10 @@ class OpenAICog(commands.Cog):
             custom_query = {"role" : "user", "content" : message.clean_content}
 
         if message.content in self.rylen_triggers:
-            prompt_query = config.bot_personalities["chad"]
+            prompt_query = aic.bot_personalities["chad"]
         elif self.bot.user.mentioned_in(message) or any(role.name == "Rylen" for role in message.role_mentions) and not message.mention_everyone:
             async with message.channel.typing():
-                prompt_query = config.bot_personalities[self.persona]
+                prompt_query = aic.bot_personalities[self.persona]
                 prompt_query.append(custom_query)
                 print(f"\nPrompt query before response: \n{prompt_query}")
 
@@ -251,7 +252,7 @@ class OpenAICog(commands.Cog):
                     response = self.client.chat.completions.create(model=self.model_engine, messages=prompt_query, temperature=self.temperature)
                     response_message = response.choices[0].message.content
                     # Discord messages limited to 2000 in size, break into chunks if necessary
-                    response_chunks = [response_message[i:i + config.RESPONSE_CHUNK_SIZE] for i in range(0, len(response_message), config.RESPONSE_CHUNK_SIZE)]
+                    response_chunks = [response_message[i:i + aic.RESPONSE_CHUNK_SIZE] for i in range(0, len(response_message), aic.RESPONSE_CHUNK_SIZE)]
                     for chunk in response_chunks:
                         if self.mention_user:
                             await message.channel.send(f"{message.author.mention} {chunk}")
@@ -260,11 +261,11 @@ class OpenAICog(commands.Cog):
 
                     if self.conversation_memory:
                         response_query = {"role" : "assistant", "content" : response_message}
-                        config.bot_personalities[self.persona].append(response_query)
-                        if len(config.bot_personalities[self.persona]) > self.cache_size:
-                            del config.bot_personalities[self.persona][1:3]
+                        aic.bot_personalities[self.persona].append(response_query)
+                        if len(aic.bot_personalities[self.persona]) > self.cache_size:
+                            del aic.bot_personalities[self.persona][1:3]
                     else:
-                        config.bot_personalities[self.persona].pop()
+                        aic.bot_personalities[self.persona].pop()
                     await self.data_logging(message, response)
 
                 except Exception as e:

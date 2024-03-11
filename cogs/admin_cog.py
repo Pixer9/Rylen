@@ -1,6 +1,7 @@
 from discord.ext import commands
 from logger import logger
-from utility import config
+#from utility import config
+from config import BotConfig as bc
 import datetime
 import discord
 import json
@@ -24,7 +25,7 @@ class AdminCog(commands.Cog):
             return
         try:
             embed = discord.Embed(title="List of all available admin commands:", colour=0x4f2d7f)
-            embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+            embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
 
             cog = self.bot.get_cog(self.__class__.__name__)
 
@@ -74,7 +75,7 @@ class AdminCog(commands.Cog):
         try:
             server = ctx.guild
             embed = discord.Embed(title="Users in Timeout", colour=0x4f2d7f)
-            embed.set_footer(text=f"{config.BOT_NAME}: Tarleton Engineering Discord Bot")
+            embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
             timeout_members_found = False
             field_count = 0
             async for member in server.fetch_members(limit=None):

@@ -9,7 +9,7 @@ class VoiceCog(commands.Cog):
         self.bot = bot
 
     
-    @commands.Command(name="join")
+    @commands.command(name="join")
     async def join(self, ctx: commands.Context) -> None:
         if ctx.author.voice:
             channel = ctx.author.voice.channel

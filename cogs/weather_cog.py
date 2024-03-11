@@ -1,7 +1,8 @@
 # weather_cog.py
 from discord.ext import commands, tasks
 from datetime import datetime
-from utility import config
+#from utility import config
+from config import WeatherConfig as wc
 from utility import forecast
 from logger import logger
 import discord
@@ -134,7 +135,7 @@ class WeatherCog(commands.Cog):
         """ Coroutine to check for any active severe weather alerts """
         print(self._severe_weather_alerts)
         client_location = "Stepehenville, TX"
-        channel = self.bot.get_channel(config.SEVERE_WEATHER_ALERTS_CHANNEL)
+        channel = self.bot.get_channel(wc.SEVERE_WEATHER_ALERTS_CHANNEL)
         alerts = forecast.get_county_alerts(client_location)
         active_alerts = []
 
@@ -147,7 +148,7 @@ class WeatherCog(commands.Cog):
                     if active_alert in self._severe_weather_alerts:
                         pass
                     else:
-                        logger.info(f"Severe weather alert detected. Post {alert['properties']['headline']} to {config.SEVERE_WEATHER_ALERTS_CHANNEL}")
+                        logger.info(f"Severe weather alert detected. Post {alert['properties']['headline']} to {wc.SEVERE_WEATHER_ALERTS_CHANNEL}")
                         self._severe_weather_alerts.append(alert['properties']['event'])
                         embed = discord.Embed(title=f"Severe Weather Alert for {client_location}", colour=0xFF7F50)
                         embed.set_footer(text="Information retrieved from weather.gov using publicly available API")

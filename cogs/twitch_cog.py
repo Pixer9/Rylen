@@ -4,23 +4,24 @@ from twitchAPI.twitch import Twitch
 from typing import Dict
 from twitchAPI.helper import first
 from logger import logger
-from utility import config
+#from utility import config
+from config import TwitchConfig as tc
 import discord
 
 class TwitchCog(commands.Cog):
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.twitch = Twitch(config.TWITCH_CLIENT_ID, config.TWITCH_SECRET)
+        self.twitch = Twitch(tc.TWITCH_CLIENT_ID, tc.TWITCH_SECRET)
         self.notified_live: Dict[str, list] = {}
-        self.twitch_users_to_watch = config.TWITCH_LIVE_USERS_LIST
+        self.twitch_users_to_watch = tc.TWITCH_LIVE_USERS_LIST
         #self.check_twitch_streams.start()
 
 
     @commands.command(name="twitch_commands")
     async def twitch_commands(self, ctx: commands.Context) -> None:
         """ Display an embed that contains all available Twitch bot commands """
-        if ctx.channel.id != config.TWITCH_LIVE_CHANNEL_ID:
+        if ctx.channel.id != tc.TWITCH_LIVE_CHANNEL_ID:
             return
         
         embed = discord.Embed(title="Twitch Commands", colour=0x9146FF)
@@ -41,7 +42,7 @@ class TwitchCog(commands.Cog):
             Get a list of all live Twitch streams of user added accounts
                 '!live_twitch'
         """
-        if ctx.channel.id != config.TWITCH_LIVE_CHANNEL_ID:
+        if ctx.channel.id != tc.TWITCH_LIVE_CHANNEL_ID:
             return
         
         if self.notified_live:
@@ -65,7 +66,7 @@ class TwitchCog(commands.Cog):
             Add your Twitch account to the Live Watch List for livestream notifications
                 '!add_twitch twitchUsername'
         """
-        if ctx.channel.id != config.TWITCH_LIVE_CHANNEL_ID:
+        if ctx.channel.id != tc.TWITCH_LIVE_CHANNEL_ID:
             return
         
         message = ctx.message.content[len("!add_twitch") + 1:]
@@ -96,7 +97,7 @@ class TwitchCog(commands.Cog):
             Display a list of all Twitch users being watched for live notifications
                 '!list_twitch'
         """
-        if ctx.channel.id != config.TWITCH_LIVE_CHANNEL_ID:
+        if ctx.channel.id != tc.TWITCH_LIVE_CHANNEL_ID:
             return
         
         embed = discord.Embed(title="Twitch Account Watch List", colour=0x9146FF)
@@ -134,7 +135,7 @@ class TwitchCog(commands.Cog):
 
                 if user not in self.notified_live:
                     self.notified_live[user] = [game, title, stream_url, stream_info.thumbnail_url]
-                    channel = self.bot.get_channel(config.TWITCH_LIVE_CHANNEL_ID)
+                    channel = self.bot.get_channel(tc.TWITCH_LIVE_CHANNEL_ID)
                     await channel.send(f"{user} is love on Twitch playing {game}: {title}\n{stream_url}")
             if stream_info is None and user in self.notified_live:
                 del self.notified_live[user]
