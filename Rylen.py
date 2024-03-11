@@ -2,12 +2,13 @@
 from discord.ext import commands
 from typing import Union
 from logger import logger
-from utility import config
+#from utility import config
+from config import BotConfig as bc
 from dotenv import load_dotenv
 import discord
 import os
 
-load_dotenv('config/bot.env')
+load_dotenv(bc.ENV_FILE)
 
 class Rylen(commands.Bot):
     def __init__(self) -> None:
@@ -16,6 +17,7 @@ class Rylen(commands.Bot):
             intents=discord.Intents.all(),
             activity=discord.Activity(name="Vibes", type=discord.ActivityType.competing)
         )
+        self.cogs_folder = bc.COGS_FOLDER
         self.cogs_dir = self.find_cogs_directory(os.getcwd())
 
         @self.command(name="load")
@@ -67,7 +69,7 @@ class Rylen(commands.Bot):
             if file_name.endswith("cog.py"):
                 cog_name = file_name[:-3]
                 try:
-                    await self.load_extension(f"{config.COGS_FOLDER}.{cog_name}")
+                    await self.load_extension(f"{bc.COGS_FOLDER}.{cog_name}")
                     logger.info(f"Loaded {cog_name}.py")
                 except commands.ExtensionAlreadyLoaded:
                     logger.info(f"{cog_name}.py has already been loaded.")
@@ -88,11 +90,11 @@ class Rylen(commands.Bot):
     
     async def find_cogs_directory(self, start_dir: str) -> Union[str, None]:
         for dirpath, dirnames, _ in os.walk(start_dir):
-            if config.COGS_FOLDER in dirnames:
-                return os.path.join(dirpath, config.COGS_FOLDER)
+            if self.cogs_folder in dirnames:
+                return os.path.join(dirpath, self.cogs_folder)
         return None
 
 
 if __name__ == "__main__":
     bot = Rylen()
-    bot.run(token=config.DISCORD_API_KEY)
+    bot.run(token=bc.DISCORD_API_KEY)
