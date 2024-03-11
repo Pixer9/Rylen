@@ -1,14 +1,18 @@
 # Rylen.py
 from discord.ext import commands
-from typing import Union
-from logger import logger
-#from utility import config
-from config import BotConfig as bc
 from dotenv import load_dotenv
+from typing import Union
+#from utility import config
 import discord
 import os
 
-load_dotenv(bc.ENV_FILE)
+load_dotenv('config/bot.env')
+
+# Since contents of these files rely on bot.env, they must be imported
+# after it is loaded
+from config import BotConfig as bc
+from logger import logger
+
 
 class Rylen(commands.Bot):
     def __init__(self) -> None:
@@ -65,7 +69,7 @@ class Rylen(commands.Bot):
         logger.info(f"Logged in as {self.user.name}")
         await self.wait_until_ready()
 
-        for file_name in os.listdir(await self.cogs_dir):
+        for file_name in os.listdir(self.cogs_dir):
             if file_name.endswith("cog.py"):
                 cog_name = file_name[:-3]
                 try:
@@ -88,7 +92,7 @@ class Rylen(commands.Bot):
             logger.critical(f"Exception: {e}")
 
     
-    async def find_cogs_directory(self, start_dir: str) -> Union[str, None]:
+    def find_cogs_directory(self, start_dir: str) -> Union[str, None]:
         for dirpath, dirnames, _ in os.walk(start_dir):
             if self.cogs_folder in dirnames:
                 return os.path.join(dirpath, self.cogs_folder)
@@ -97,4 +101,5 @@ class Rylen(commands.Bot):
 
 if __name__ == "__main__":
     bot = Rylen()
+    print(bc.BOT_NAME)
     bot.run(token=bc.DISCORD_API_KEY)
