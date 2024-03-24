@@ -5,7 +5,7 @@ from typing import Union
 #from utility import config
 import discord
 import os
-
+ 
 load_dotenv('config/bot.env')
 
 # Since contents of these files rely on bot.env, they must be imported
@@ -83,7 +83,7 @@ class Rylen(commands.Bot):
                     logger.critical(f"Failed to load {cog_name} cog: {str(e)}")
         try:
             await self.load_extension("select_roles.select_cog")
-            logger.info("Lodeaded select_cog")
+            logger.info("Loaded select_cog")
         except commands.ExtensionAlreadyLoaded:
             logger.info(f"select_cog.py already loaded.")
         except commands.ExtensionNotFound:
@@ -101,5 +101,4 @@ class Rylen(commands.Bot):
 
 if __name__ == "__main__":
     bot = Rylen()
-    print(bc.BOT_NAME)
     bot.run(token=bc.DISCORD_API_KEY)
