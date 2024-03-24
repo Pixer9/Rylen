@@ -1,3 +1,4 @@
+from datetime import time
 import os
 
 # Log prefix - currently uses bot name
@@ -22,7 +23,7 @@ DELAY = False
 USE_UTC = False
 
 # Time to rotate logs - if timed based
-AT_TIME = None
+AT_TIME = time(0, 0, 0)
 
 # Log level threshold
 LOG_LEVEL = "INFO"
