@@ -134,7 +134,7 @@ class WeatherCog(commands.Cog):
     async def check_weather_alerts(self) -> None:
         """ Coroutine to check for any active severe weather alerts """
         print(self._severe_weather_alerts)
-        client_location = "Stepehenville, TX"
+        client_location = "Stephenville, TX"
         channel = self.bot.get_channel(wc.SEVERE_WEATHER_ALERTS_CHANNEL)
         alerts = forecast.get_county_alerts(client_location)
         active_alerts = []
@@ -144,7 +144,7 @@ class WeatherCog(commands.Cog):
                 active_alert = alert['properties']['event']
                 active_alerts.append(active_alert)
 
-                if active_alert.__contains__("Severe ThunderStorm Warning") or active_alert.__contains__("Tornado Warning"):
+                if active_alert.__contains__("Severe Thunderstorm Warning") or active_alert.__contains__("Tornado Warning"):
                     if active_alert in self._severe_weather_alerts:
                         pass
                     else:
