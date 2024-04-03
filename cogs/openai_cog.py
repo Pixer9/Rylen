@@ -29,6 +29,7 @@ class OpenAICog(commands.Cog):
         self.csv_file_name = "bot_chat_logs.csv"
         self.csv_field_names = ["user_name", "user_id", "query_message", "response_message", "prompt_tokens", "completion_tokens", "total_tokens"]
 
+
     @commands.command(name="openai_commands")
     async def openai_commands(self, ctx: commands.Context) -> None:
         """ Display an embed that contains all available OpenAI API commands """
@@ -47,6 +48,7 @@ class OpenAICog(commands.Cog):
         except Exception as e:
             await ctx.send(f"Error: {e}")
             logger.critical(f"Exception: {e}")
+
 
     @commands.command(name="temperature")
     async def temperature(self, ctx: commands.Context, temp: float) -> None:
@@ -70,6 +72,7 @@ class OpenAICog(commands.Cog):
         except ValueError:
             embed.add_field(name="Invalid temperature value", value="Please enter a number after the command - ex. '!temperature 0.7'")
             await ctx.send(embed=embed)
+
 
     @commands.command(name="personality")
     @commands.has_permissions(administrator=True)
@@ -101,6 +104,7 @@ class OpenAICog(commands.Cog):
         
         await ctx.send(embed=embed)
 
+
     @commands.command(name="models")
     @commands.has_permissions(administrator=True)
     async def models(self, ctx: commands.Context) -> None:
@@ -122,6 +126,7 @@ class OpenAICog(commands.Cog):
             else:
                 break
         await ctx.send(embed=embed)
+
 
     @commands.command(name="change_model")
     @commands.has_permissions(administrator=True)
@@ -151,6 +156,7 @@ class OpenAICog(commands.Cog):
 
         await ctx.send(embed=embed)
 
+
     @commands.command(name="chat_history")
     @commands.has_permissions(administrator=True)
     async def chat_history(self, ctx: commands.Context) -> None:
@@ -167,6 +173,7 @@ class OpenAICog(commands.Cog):
         embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
         await ctx.send(embed=embed)
 
+
     @commands.command(name="parameters")
     async def parameters(self, ctx: commands.Context) -> None:
         """
@@ -180,6 +187,7 @@ class OpenAICog(commands.Cog):
         embed.add_field(name="Tepmerature: ", value=self.temperature, inline=False)
         embed.add_field(name="Remember Chat History", value="Yes" if self.conversation_memory else "No")
         await ctx.send(embed=embed)
+
 
     @commands.command(name="image")
     @commands.has_permissions(administrator=True)
@@ -205,6 +213,7 @@ class OpenAICog(commands.Cog):
         except Exception as e:
             logger.critical(f"Exception: {e}")
 
+
     async def data_logging(self, message: discord.Message, response) -> None:
         """ Method for logging interaction data (most importantly keeps track of token usage) """
         chat_log_dir = "chat-logs"
@@ -228,6 +237,7 @@ class OpenAICog(commands.Cog):
                 })
         except Exception as e:
             logger.critical(f"Error while writing to chat log file {self.csv_file_name}: {e}")
+
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -270,6 +280,7 @@ class OpenAICog(commands.Cog):
 
                 except Exception as e:
                     logger.critical(f"Error: {e}")
+
 
 async def setup(bot: commands.Bot):
     """ Initialize the OpenAI cog and add it to the bot """
