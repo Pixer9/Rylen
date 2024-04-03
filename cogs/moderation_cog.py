@@ -90,7 +90,7 @@ class ModerationCog(commands.Cog):
 
 
     @commands.Cog.listener()
-    async def on_member_ban(self, guild: discord.Guild, user: discord.User, banned_by: discord.User) -> None:
+    async def on_member_ban(self, guild: discord.Guild, user: discord.User) -> None:
         """ Keep track of if a user gets banned """
         logger.info(f"User {user} has been banned from {guild}")
 
@@ -103,7 +103,7 @@ class ModerationCog(commands.Cog):
         )
 
         embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
-        embed.add_field(name="Banned by", value=banned_by.mention, inline=False)
+        #embed.add_field(name="Banned by", value=banned_by.mention, inline=False)
 
         # Send notification to admin channel
         await admin_channel.send(embed=embed)
