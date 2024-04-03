@@ -61,6 +61,30 @@ class Rylen(commands.Bot):
             except Exception as e:
                 logger.critical(f"Exception: {e} while reloading cog.")
 
+        
+        @self.command(name="load_test_cog")
+        @commands.has_permissions(administrator=True)
+        async def load_test_cog(ctx: commands.Context, path: str) -> None:
+            try:
+                await self.load_extension(path)
+                await ctx.send(f"Loaded extension: {path}")
+            except commands.ExtensionNotFound:
+                await ctx.send(f"Unable to resolve {path}")
+            except Exception as e:
+                logger.critical(f"Exception: {e} while loading cog: {path}")
+
+
+        @self.command(name="unload_test_cog")
+        @commands.has_permissions(administrator=True)
+        async def unload_test_cog(ctx: commands.Context, path: str) -> None:
+            try:
+                await self.unload_extension(path)
+                await ctx.send(f"Unloaded extension: {path}")
+            except commands.ExtensionNotFound:
+                await ctx.send(f"Unable to resolve {path}")
+            except Exception as e:
+                logger.critical(f"Exception: {e} while unloading cog: {path}")
+                
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
