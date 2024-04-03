@@ -29,7 +29,7 @@ class SelectRoles(commands.Cog, name="Select Roles"):
     @tasks.loop(hours=24)
     async def roles_message(self) -> None:
         try:
-            logger.info("Updating the roles message seelect...")
+            logger.info("Updating the roles message select...")
             channel = self.bot.get_channel(config.ROLES_CHANNEL_ID)
             roles_message = None
             if channel:
