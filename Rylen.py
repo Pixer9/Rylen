@@ -15,6 +15,16 @@ from logger import logger
 
 
 class Rylen(commands.Bot):
+
+    required_roles = {
+        "Verified": {
+            "permissions": discord.Permissions(send_messages=True, read_messages=True)
+        },
+        "Unverified": {
+            "permissions": discord.Permissions(send_messages=False, read_messages=False)
+        },
+    }
+
     def __init__(self) -> None:
         super().__init__(
             command_prefix="!",
@@ -28,8 +38,12 @@ class Rylen(commands.Bot):
         @commands.has_permissions(administrator=True)
         async def load(ctx: commands.Context, extension_name: str) -> None:
             try:
-                await self.load_extension(f"cogs.{extension_name}")
-                await ctx.send(f"Loaded extension: {extension_name}")
+                if '.' in extension_name:
+                    await self.load_extension(extension_name)
+                    await ctx.send(f"Loaded extension: {extension_name}")
+                else:
+                    await self.load_extension(f"cogs.{extension_name}")
+                    await ctx.send(f"Loaded extension: {extension_name}")
             except commands.ExtensionAlreadyLoaded:
                 await ctx.send(f"{extension_name}.py has already been loaded")
             except commands.ExtensionNotFound:
@@ -42,8 +56,12 @@ class Rylen(commands.Bot):
         @commands.has_permissions(administrator=True)
         async def unload(ctx: commands.Context, extension_name: str) -> None:
             try:
-                await self.unload_extension(f"cogs.{extension_name}")
-                await ctx.send(f"Unloaded extension: {extension_name}")
+                if '.' in extension_name:
+                    await self.unload_extension(extension_name)
+                    await ctx.send(f"Unloaded extension: {extension_name}")
+                else:
+                    await self.unload_extension(f"cogs.{extension_name}")
+                    await ctx.send(f"Unloaded extension: {extension_name}")
             except commands.ExtensionNotFound:
                 await ctx.send(f"{extension_name}.py not found.")
             except Exception as e:
@@ -54,36 +72,16 @@ class Rylen(commands.Bot):
         @commands.has_permissions(administrator=True)
         async def reload(ctx: commands.Context, extension_name: str) -> None:
             try:
-                await self.reload_extension(f"cogs.{extension_name}")
-                await ctx.send(f"Reloaded extension: {extension_name}")
+                if '.' in extension_name:
+                    await self.reload_extension(extension_name)
+                    await ctx.send(f"Reloaded extension: {extension_name}")
+                else:
+                    await self.reload_extension(f"cogs.{extension_name}")
+                    await ctx.send(f"Reloaded extension: {extension_name}")
             except commands.ExtensionNotFound:
                 await ctx.send(f"{extension_name}.py not found.")
             except Exception as e:
                 logger.critical(f"Exception: {e} while reloading cog.")
-
-        
-        @self.command(name="load_test_cog")
-        @commands.has_permissions(administrator=True)
-        async def load_test_cog(ctx: commands.Context, path: str) -> None:
-            try:
-                await self.load_extension(path)
-                await ctx.send(f"Loaded extension: {path}")
-            except commands.ExtensionNotFound:
-                await ctx.send(f"Unable to resolve {path}")
-            except Exception as e:
-                logger.critical(f"Exception: {e} while loading cog: {path}")
-
-
-        @self.command(name="unload_test_cog")
-        @commands.has_permissions(administrator=True)
-        async def unload_test_cog(ctx: commands.Context, path: str) -> None:
-            try:
-                await self.unload_extension(path)
-                await ctx.send(f"Unloaded extension: {path}")
-            except commands.ExtensionNotFound:
-                await ctx.send(f"Unable to resolve {path}")
-            except Exception as e:
-                logger.critical(f"Exception: {e} while unloading cog: {path}")
                 
 
     @commands.Cog.listener()
@@ -92,6 +90,14 @@ class Rylen(commands.Bot):
 
         logger.info(f"Logged in as {self.user.name}")
         await self.wait_until_ready()
+
+        # For testing required role addition for verify cog
+        target_guild_id = 1107119090541285467
+        for guild in bot.guilds:
+            if guild.id == target_guild_id:
+                for role in self.required_roles.keys():
+                    await self.ensure_role_exists(guild, role, self.required_roles[role]["permissions"])
+                break
 
         for file_name in os.listdir(self.cogs_dir):
             if file_name.endswith("cog.py"):
@@ -121,6 +127,18 @@ class Rylen(commands.Bot):
             if self.cogs_folder in dirnames:
                 return os.path.join(dirpath, self.cogs_folder)
         return None
+
+
+    async def ensure_role_exists(self, guild: discord.Guild, role_name: str, permissions: discord.Permissions) -> None:
+        role = discord.utils.get(guild.roles, name=role_name)
+        if not role:
+            try:
+                await guild.create_role(name=role_name, permissions=permissions)
+                logger.info(f"Created role {role_name} in guild {guild.name}")
+            except discord.Forbidden:
+                logger.critical(f"Lack permissions to create roles in guild {guild.name}")
+            except discord.HTTPException as e:
+                logger.critical(f"Failed to create role in guilde {guild.name}: {e}")
 
 
 if __name__ == "__main__":
