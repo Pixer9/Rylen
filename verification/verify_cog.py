@@ -1,20 +1,16 @@
 # verify_cog.py
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
 from datetime import datetime, timedelta
 from discord.ext import commands, tasks
 from email.mime.text import MIMEText
-from requests import HTTPError
-from logger import logger
+from logger import main_logger as logger
+from config import BotConfig as bc
 from typing import Dict
-import smtplib
-import base64
+import requests
 import discord
 import random
 import json
 import os
 
-TEST_CHANNEL = 1107119090541285470 # BTG server - general channel - remove after testing
 
 class VerifyCog(commands.Cog):
 
@@ -22,24 +18,23 @@ class VerifyCog(commands.Cog):
         "https://www.googleapis.com/auth/gmail.send"
     ]
 
+    TEST_CHANNEL = 1107119090541285470 # BTG server - general channel - remove after testing
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.code_length = 6 # make this configurable
         self.verification_codes: Dict[int, dict] = self.load_verification_codes() # {user_id: {verification_code: code, user_email: email, display_name: user_display_name, global_name: user_discord_name, attempts: int}}
         self.attempt_tracker: Dict[int, dict] = self.load_attempts() # {user_id: {"attempts": int, "cooldown_until": datetime}}
 
-        self.smtp_email = os.getenv('APP_EMAIL')
-        self.smtp_password = os.getenv('APP_PASSWORD')
-        self.smtp_server = os.getenv('APP_SERVER')
-        self.smtp_port = os.getenv('APP_PORT')
+        self.mailgun_api_key = os.getenv('MAILGUN_API_KEY')
+        self.mailgun_domain = os.getenv('MAILGUN_DOMAIN')
         self.email_domain = os.getenv('EMAIL_DOMAIN')
-
 
     @commands.command(name="test_email")
     @commands.has_permissions(administrator=True)
     async def test_email(self, ctx: commands.Context) -> None:
         """ For testing email functionality """
-        if ctx.channel.id != TEST_CHANNEL:
+        if ctx.channel.id != self.TEST_CHANNEL:
             await ctx.send("This command can only be used in the designated test channel.")
             return
         
@@ -199,33 +194,35 @@ class VerifyCog(commands.Cog):
 
     async def send_email(self, email: str, code: str) -> None:
         """ Send verification email to the new user """
-        flow = InstalledAppFlow.from_client_secrets_file('gmail_credentials.json', self.smtp_scopes)
-        creds = flow.run_local_server(port=0)
-
-        email_contents = f"""\
-            Your verification code is: {code}
-        """
-
-        service = build('gmail', 'v1', credentials=creds)
-        message = MIMEText(email_contents, "plain")
-        message['To'] = email
-        message['Subject'] = 'Verification Code'
-        create_message = {'raw': base64.urlsave_b64encode(message.as_bytes()).decode()}
+        email_contents = f"Your verification code is: {code}"
 
         try:
-            message = (service.users().messages().send(userId="me", body=create_message).execute())
-        except HTTPError as http_error:
-            logger.critical(f"Error: {http_error} while sending email for authentication.\nProvided email: {email} - Email contents: {email_contents}")
-        except Exception as e:
-            logger.critical(f"Error while sending authentication email: {e}")
+            response = requests.post(
+                f"https://api.mailgun.net/v3/{self.mailgun_domain}/messages",
+                auth=("api", self.mailgun_api_key),
+                data={
+                    "from": f"{bc.BOT_NAME}<mailgun@{self.mailgun_domain}>",
+                    "to": [email],
+                    "subject": "Verification Code",
+                    "text": email_contents
+                }
+            )
+            logger.info(f"Mailgun Domain: {self.mailgun_domain}")
+            logger.info(f"Mailgun API Key: {self.mailgun_api_key}")
+            logger.info(f"Mailgun response: {response.status_code}: {response.text}")
+            logger.info(f"Verification email successfully sent to {email}")
+            return True
+        except requests.exceptions.RequestException as req_excep:
+            logger.warning(f"Failed to send verification email to {email}: {e}")
+            return False
 
 
-    def generate_verification_code(self) -> str:
+    async def generate_verification_code(self) -> str:
         """ Generate a n-digit verification code. """
         return ''.join([str(random.randint(0, 9)) for _ in range(self.code_length)])
     
 
-    def check_attempts_and_cooldown(self, user_id: int) -> bool:
+    async def check_attempts_and_cooldown(self, user_id: int) -> bool:
         """
             Check if the user has exceeded their maximum attempt limit or is in the cooldown period
             Returns True if the user is allowed to make an attempt, False otherwise
@@ -241,7 +238,7 @@ class VerifyCog(commands.Cog):
         return True
     
 
-    def record_attempt(self, user_id: int) -> None:
+    async def record_attempt(self, user_id: int) -> None:
         """
             Record an attempt. If the attempt limit is reached, start a cooldown period
         """
@@ -283,14 +280,14 @@ class VerifyCog(commands.Cog):
             return user_attempts
 
     
-    def save_verification_codes(self) -> None:
+    async def save_verification_codes(self) -> None:
         """ Save the current state of verification codes to a file. """
         logger.debug(f"Saving verification codes: {self.verification_codes}")
         with open("verification_codes.json", "w") as file:
             json.dump(self.verification_codes, file, indent=4)
 
     
-    def check_verification_code(self, user_id: int, code: int) -> bool:
+    async def check_verification_code(self, user_id: int, code: int) -> bool:
         """ 
             Compare the user given code vs bot generated code. If correct,
             allow access and save verification status. If incorrect, log an
@@ -302,10 +299,10 @@ class VerifyCog(commands.Cog):
             self.verification_codes[user_id]['is_verified'] = True
             self.verification_codes[user_id]['verified_at'] = datetime.now().strftime("%m-%d-%YT%H:%M:%S")
             self.attempt_tracker[user_id] = {"attempts": 0, "cooldown_until": datetime.min}
-            self.save_verification_codes()
+            await self.save_verification_codes()
             return True
         else:
-            self.record_attempt(user_id)
+            await self.record_attempt(user_id)
             return False
         
 
@@ -344,7 +341,27 @@ class VerifyCog(commands.Cog):
                 logger.warning(f"Unable to locate user: {user_id}")
         else:
             logger.warning(f"Unable to validate user_info: {user_id} - {self.verification_codes[user_id]}")
-        
+
+    
+    async def delete_verification_message(self, user_id: int) -> None:
+        """ Delete the verification message for a user after successful verification or if it's no longer valid """
+        user_info = self.verification_codes.get(user_id)
+        if user_info and user_info.get("message_id") and user_info.get("channel_id"):
+            try:
+                channel = self.bot.get_channel(user_info["channel_id"])
+                if channel:
+                    message = await channel.fetch_message(user_info["message_id"])
+                    await message.delete()
+                    logger.info(f"Deleted verification message for user ID {user_id}.")
+            except discord.NotFound:
+                logger.warning(f"Message or channel not found for user ID {user_id}")
+            except discord.Forbidden:
+                logger.warning(f"Lack permissions to delete message for user ID {user_id}")
+            except discord.HTTPException as e:
+                logger.critical(f"HTTP exception when trying to delete message for user ID {user_id}: {str(e)}")
+        else:
+            logger.warning(f"No verification message found for user ID {user_id} to delete")
+
 
 class VerifyButton(discord.ui.Button):
 
@@ -376,7 +393,7 @@ class EmailModal(discord.ui.Modal, title="Email Verification"):
         """ Callback for Modal submission """
         cog = interaction.client.get_cog("VerifyCog")
 
-        if not cog.check_attempts_and_cooldown(interaction.user.id):
+        if not await cog.check_attempts_and_cooldown(interaction.user.id):
             await interaction.response.send_message("You have exceeded the maximum attempt limit. Please try again later.", ephemeral=True)
             return
         
@@ -388,7 +405,7 @@ class EmailModal(discord.ui.Modal, title="Email Verification"):
             return
 
 
-        code = cog.generate_verification_code()
+        code = await cog.generate_verification_code()
 
         if interaction.user.id in cog.verification_codes:
             user_entry = cog.verification_codes[interaction.user.id]
@@ -408,15 +425,17 @@ class EmailModal(discord.ui.Modal, title="Email Verification"):
                 "global_name": interaction.user.name,
                 "attempts": 0,
             }
-        cog.save_verification_codes()
+        await cog.save_verification_codes()
 
-        await cog.send_verification_email(self.email.value, code)
+        #await cog.send_verification_email(self.email.value, code)
+        email_status = await cog.send_email(self.email.value, code)
 
-        cog.attempt_tracker[interaction.user.id] = {"attempts": 0, "cooldown_until": datetime.min}
-        await cog.enable_code_entry_button(interaction.user.id)
-
-        await interaction.response.send_message("Verification code has been sent, please check the email you provided. Click 'Enter Verification Code' button to enter the code.", ephemeral=True)
-
+        if email_status:
+            cog.attempt_tracker[interaction.user.id] = {"attempts": 0, "cooldown_until": datetime.min}
+            await cog.enable_code_entry_button(interaction.user.id)
+            await interaction.response.send_message("Verification code has been sent, please check the email you provided. Click 'Enter Verification Code' button to enter the code.", ephemeral=True)
+        else:
+            await interaction.response.send_message("There was a problem encountered while sending the email, please try again. If the problem persists, please contact an admin.")
 
 class CodeModal(discord.ui.Modal, title="Verification Code"):
 
@@ -428,7 +447,7 @@ class CodeModal(discord.ui.Modal, title="Verification Code"):
 
         code = self.code.value
         
-        if not cog.check_verification_code(interaction.user.id, code):
+        if not await cog.check_verification_code(interaction.user.id, code):
             await interaction.response.send_message("The verification code you provided is incorrect. Please try again.")
 
             return
@@ -446,6 +465,7 @@ class CodeModal(discord.ui.Modal, title="Verification Code"):
                     if verified_role:
                         await member.add_roles(verified_role)
                     logger.info(f"{interaction.user.display_name} with ID {interaction.user.id} has successfully validated their email.")
+                    await cog.delete_verification_message(interaction.user.id)
                     await interaction.response.send_message("You have successfully validated your email. You can now interact with users on the server and view/send messages in the channels.", ephemeral=True)
                 else:
                     logger.warning(f"Could not find user {interaction.user.display_name} in the server. User ID: {interaction.user.id}")

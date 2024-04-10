@@ -3,7 +3,7 @@ from discord.ext import commands, tasks
 from twitchAPI.twitch import Twitch
 from typing import Dict
 from twitchAPI.helper import first
-from logger import logger
+from logger import main_logger as logger
 #from utility import config
 from config import TwitchConfig as tc
 import discord

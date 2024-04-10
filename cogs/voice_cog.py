@@ -1,5 +1,5 @@
 from discord.ext import commands
-from logger import logger
+from logger import main_logger as logger
 import discord
 
 

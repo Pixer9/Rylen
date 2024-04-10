@@ -1,8 +1,8 @@
 # forecast.py
+from logger import main_logger as logger
 from geopy.geocoders import Nominatim
 from utility.config import EMAIL
 from typing import Union
-from logger import logger
 import requests
 import json
 

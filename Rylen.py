@@ -2,16 +2,15 @@
 from discord.ext import commands
 from dotenv import load_dotenv
 from typing import Union
-#from utility import config
 import discord
 import os
- 
+
 load_dotenv('config/bot.env')
 
 # Since contents of these files rely on bot.env, they must be imported
 # after it is loaded
 from config import BotConfig as bc
-from logger import logger
+from logger import main_logger as logger
 
 
 class Rylen(commands.Bot):

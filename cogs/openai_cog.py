@@ -1,6 +1,6 @@
 # openai_cog.py
 from discord.ext import commands, tasks
-from logger import logger
+from logger import main_logger as logger
 #from utility import config
 from config import OpenAIConfig as aic, BotConfig as bc
 import datetime
@@ -12,10 +12,12 @@ import os
 # TODO - Clean up OpenAI commands. Parameters are passed, no reason to manually strip them from string
 
 class OpenAICog(commands.Cog):
+
+    chat_log_dir = aic.CHAT_LOG_DIR
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.client = openai.OpenAI(api_key=aic.OPENAI_API_KEY)
-        #openai.api_key = config.OPENAI_API_KEY
         self.model_engine = "gpt-3.5-turbo"
         self.temperature = 0.5
         self.persona = str(next(iter(aic.bot_personalities)))
@@ -28,6 +30,9 @@ class OpenAICog(commands.Cog):
 
         self.csv_file_name = "bot_chat_logs.csv"
         self.csv_field_names = ["user_name", "user_id", "query_message", "response_message", "prompt_tokens", "completion_tokens", "total_tokens"]
+
+        if not os.path.exists(self.chat_log_dir):
+            os.makedirs(self.chat_log_dir)
 
 
     @commands.command(name="openai_commands")
@@ -216,12 +221,8 @@ class OpenAICog(commands.Cog):
 
     async def data_logging(self, message: discord.Message, response) -> None:
         """ Method for logging interaction data (most importantly keeps track of token usage) """
-        chat_log_dir = "chat-logs"
 
-        if not os.path.exists(chat_log_dir):
-            os.makedirs(chat_log_dir)
-
-        chat_log_file = os.path.join(chat_log_dir, "chat-" + datetime.datetime.now().strftime("%m-%d-%y") + ".csv")
+        chat_log_file = os.path.join(self.chat_log_dir, "chat-" + datetime.datetime.now().strftime("%m-%d-%y") + ".csv")
         
         try:
             with open(chat_log_file, mode='a', newline='') as csv_file:
@@ -261,7 +262,7 @@ class OpenAICog(commands.Cog):
                 try:
                     response = self.client.chat.completions.create(model=self.model_engine, messages=prompt_query, temperature=self.temperature)
                     response_message = response.choices[0].message.content
-                    # Discord messages limited to 2000 in size, break into chunks if necessary
+                    # Discord messages limited to 2000 characters in size, break into chunks if necessary
                     response_chunks = [response_message[i:i + aic.RESPONSE_CHUNK_SIZE] for i in range(0, len(response_message), aic.RESPONSE_CHUNK_SIZE)]
                     for chunk in response_chunks:
                         if self.mention_user:

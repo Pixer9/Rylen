@@ -1,7 +1,8 @@
 # moderation_cog.py
 from discord.ext import commands, tasks
 from datetime import datetime
-from logger import logger
+from logger import main_logger as logger
+from logger import user_logger
 #from utility import config
 from config import ModerationConfig as mc, BotConfig as bc
 import requests
@@ -52,14 +53,14 @@ class ModerationCog(commands.Cog):
         guild = member.guild
         channel = discord.utils.get(guild.text_channels, name="general")
         if channel is not None:
-            logger.info(f"User {member.name} has joined the server.")
+            user_logger.info(f"User {member.name} has joined the server.")
             await channel.send(f"{member.display_name} has arrived!")
     
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member) -> None:
         """ Keep track of when a user leaves """
-        logger.info(f"User {member.display_name} has left the server. {member.name}")
+        user_logger.info(f"User {member.display_name} has left the server. {member.name}")
 
         # Check if the member was kicked
         if isinstance(member, discord.Member) and member.guild.me.guild_permissions.view_audit_log:
@@ -72,7 +73,7 @@ class ModerationCog(commands.Cog):
     
     async def handle_kick(self, member: discord.Member, kicked_by: discord.User) -> None:
         """ Handles and reports kick event """
-        logger.info(f"User {member.display_name} was kicked from the server by {kicked_by.display_name}")
+        user_logger.info(f"User {member.display_name} was kicked from the server by {kicked_by.display_name}")
 
         admin_channel = member.guild.get_channel(mc.ADMIN_ONLY_CHANNEL)
 
@@ -92,7 +93,7 @@ class ModerationCog(commands.Cog):
     @commands.Cog.listener()
     async def on_member_ban(self, guild: discord.Guild, user: discord.User) -> None:
         """ Keep track of if a user gets banned """
-        logger.info(f"User {user} has been banned from {guild}")
+        user_logger.info(f"User {user} has been banned from {guild}")
 
         admin_channel = guild.get_channel(mc.ADMIN_ONLY_CHANNEL)
     
@@ -107,6 +108,15 @@ class ModerationCog(commands.Cog):
 
         # Send notification to admin channel
         await admin_channel.send(embed=embed)
+
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message) -> None:
+        """ Check for direct messages to the bot """
+        if message.guild is not None:
+            return
+        
+        logger.info(f"{message.author.name} sent {message.content}")
 
 
     async def add_event(self, date: str, time: str, title: str, location: str, url: str) -> None:

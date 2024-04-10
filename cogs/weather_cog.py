@@ -4,7 +4,7 @@ from datetime import datetime
 #from utility import config
 from config import WeatherConfig as wc
 from utility import forecast
-from logger import logger
+from logger import main_logger as logger
 import discord
 
 # TODO - have check_weather_alerts send notifications for active severe thunderstorm or tornado warning

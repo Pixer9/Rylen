@@ -2,7 +2,7 @@
 from discord.ext import commands, tasks
 from .role_view import RoleView
 from utility import config
-from logger import logger
+from logger import main_logger as logger
 
 class ButtonRoles(commands.Cog, name="Button Roles"):
     """ Creates buttons that assign roles """

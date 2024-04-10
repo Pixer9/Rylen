@@ -2,6 +2,7 @@ import os
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
+CHAT_LOG_DIR = "chat-logs"
 # OpenAI configuration globals
 TEMP_LOWER_LIMIT = 0.0
 TEMP_UPPER_LIMIT = 2.0

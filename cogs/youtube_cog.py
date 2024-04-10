@@ -1,7 +1,6 @@
 # youtube_cog.py
 from googleapiclient.discovery import build
 from discord.ext import commands, tasks
-#from utility import config
 from config import YouTubeConfig as ytc
 import discord
 

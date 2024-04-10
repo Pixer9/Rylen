@@ -1,7 +1,7 @@
 from discord.ext import commands
-from logger import logger
-#from utility import config
+from logger import main_logger as logger, user_logger
 from config import BotConfig as bc
+import asyncio
 import datetime
 import discord
 import json
@@ -147,7 +147,7 @@ class AdminCog(commands.Cog):
             amount_pruned = await guild.prune_members(days=days, roles=roles, reason=reason)
             if amount_pruned > 0:
                 await ctx.send(f"{amount_pruned} users have not logged on in the last {days} and have been pruned.")
-                logger.info(f"{amount_pruned} users have been pruned by {ctx.author.name}")
+                user_logger.info(f"{amount_pruned} users have been pruned by {ctx.author.name}")
             else:
                 await ctx.send(f"No users have been inactive within {days} days.")
         except discord.Forbidden:
@@ -207,7 +207,7 @@ class AdminCog(commands.Cog):
             if user_to_unban is not None:
                 await ctx.guild.unban(user_to_unban, reason=reason)
                 await ctx.send(f"{user_to_unban.name} has been unbanned.")
-                logger.info(f"{ctx.author.name} has unbanned {user_to_unban.name}.")
+                user_logger.info(f"{ctx.author.name} has unbanned {user_to_unban.name}.")
             else:
                 await ctx.send("User not found in the ban list.")
         except discord.Forbidden:
@@ -237,7 +237,7 @@ class AdminCog(commands.Cog):
             if _user is not None:
                 await _user.kick(reason=reason)
                 await ctx.send(f"{_user.name} has been kicked from the server.")
-                logger.info(f"{ctx.author.name} has kicked user {_user.name} from the server.")
+                user_logger.info(f"{ctx.author.name} has kicked user {_user.name} from the server.")
             else:
                 await ctx.send("User not found.")
         except discord.Forbidden:
@@ -271,7 +271,7 @@ class AdminCog(commands.Cog):
                 await _user.timeout(current_time + timeout, reason=reason)
                 await ctx.send(f"{_user.name} has been put in timeout for {duration} minutes. Until {current_time + timeout}")
 
-                logger.info(f"{ctx.author.name} has put {_user.name} in timeout for {duration} minutes.")
+                user_logger.info(f"{ctx.author.name} has put {_user.name} in timeout for {duration} minutes.")
             else:
                 await ctx.send("User not found.")
         except discord.Forbidden:
@@ -299,10 +299,9 @@ class AdminCog(commands.Cog):
                     break
             
             if _user is not None:
-                #await _user.timeout(until=None)
                 await _user.edit(timed_out_until=None)
                 await ctx.send(f"{_user.name} has had their timeout removed.")
-                logger.info(f"{ctx.author.name} has removed user {_user.name} from timeout.")
+                user_logger.info(f"{ctx.author.name} has removed user {_user.name} from timeout.")
             else:
                 await ctx.send("User not found.")
         except Exception as e:
@@ -382,6 +381,37 @@ class AdminCog(commands.Cog):
             await ctx.send("Message not found.")
         except Exception as e:
             logger.critical(f"Error occurred while parsing desired message: {e}")
+
+
+    @commands.command(name="purge_bot_dms")
+    @commands.has_permissions(administrator=True)
+    async def purge_bot_dms(self, ctx: commands.Context, channel_id: int) -> None:
+        """
+            Purge all DMs of the bot in the given channel
+                !purge_bot_dms channel_id
+        """
+        channel = self.bot.get_channel(channel_id)
+
+        if channel is None or not isinstance(channel, discord.DMChannel):
+            logger.warning(f"The channel provided {channel_id} is not a DMChannel or was not found.")
+            return
+
+        messages_found = 0
+        messages_deleted = 0
+
+        async for message in channel.history(limit=100):
+            if message.author == self.bot.user:
+                try:
+                    messages_found += 1
+                    await message.delete()
+                    messages_deleted += 1
+                    await asyncio.sleep(0.05) # Discord rate limited to 50 requests per second
+                except discord.Forbidden:
+                    logger.warning(f"Do not have permission to delete messages in this channel: {channel_id}.")
+                except discord.HTTPException as e:
+                    logger.critical(f"Failed to delete message: {str(e)}")
+                    
+        logger.info(f"{messages_found} messages found and {messages_deleted} in channel {channel_id}")
 
 
     @commands.Cog.listener()

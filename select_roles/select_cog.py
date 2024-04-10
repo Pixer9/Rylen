@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks
 from .select_role import SelectView
-from logger import logger
+from logger import main_logger as logger
 from utility import config
 import discord
 
