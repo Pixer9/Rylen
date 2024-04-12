@@ -8,3 +8,7 @@ CALENDAR_CHANNEL_ID = 1141922701469024277 # Has been moved to calendar channel i
 
 # LiveWhale Calendar Parameters
 TARGET_URL = os.getenv('CALENDAR_URL')
+
+# Test Server
+TEST_SERVER = 1107119090541285467
+TEST_CHANNEL = 1107119090541285470
