@@ -1,8 +1,9 @@
 # moderation_cog.py
 from discord.ext import commands, tasks
-from datetime import datetime
+from datetime import datetime, timedelta
 from logger import main_logger as logger
 from logger import user_logger
+from typing import Dict
 #from utility import config
 from config import ModerationConfig as mc, BotConfig as bc
 import requests
@@ -16,6 +17,18 @@ class ModerationCog(commands.Cog):
         self.calendar_events = []
         self.last_scrape = None
         self.update_calendar.start()
+        self.invites_before_join ={}
+        bot.loop.create_task(self.load_invites())
+
+
+    async def load_invites(self) -> Dict[str, dict]:
+        await self.bot.wait_until_ready()
+        for guild in self.bot.guilds:
+            try:
+                invites = await guild.invites()
+                self.invites_before_join[guild.id] = {invite.code: invite for invite in invites}
+            except discord.HTTPException as http_excep:
+                logger.critical(f"Failed to fetch invites for {guild.name}: {str(http_excep)}")
 
 
     @commands.command(name="information")
@@ -47,14 +60,38 @@ class ModerationCog(commands.Cog):
         await ctx.send(embed=embed)
 
 
+    @commands.command(name="current_invites")
+    async def current_invites(self, ctx: commands.Context) -> None:
+        """ Display current tracked invites to admin """
+        embed = discord.Embed(title="Invites", color=0x4f2d7f)
+        for guild_id, invites in self.invites_before_join.items():
+            for invite_code, invite in invites.items():
+                guild_name = await self.bot.fetch_guild(guild_id)
+                inviter = invite.inviter
+                uses = invite.uses
+                embed.add_field(name=guild_name, value=f"Invite Code: {invite_code}\nInviter: {inviter}\nUses: {uses}")
+        #await ctx.send(f"Current Invites: \n{self.invites_before_join}")
+        await ctx.send(embed=embed)
+
+
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
         """ Greet new members when they join """
         guild = member.guild
+        guild_invites = await member.guild.invites()
+
         channel = discord.utils.get(guild.text_channels, name="general")
+        admin_channel = member.guild.get_channel(mc.ADMIN_ONLY_CHANNEL)
+
         if channel is not None:
             user_logger.info(f"User {member.name} has joined the server.")
             await channel.send(f"{member.display_name} has arrived!")
+
+        for invite in guild_invites:
+            if invite.uses > self.invites_before_join[member.guild.id][invite.code].uses:
+                await admin_channel.send(f"{member.name} joined by using invite {invite.code} created by {invite.inviter}")
+                break
+        self.invites_before_join[member.guild.id] = {invite.code: invite for invite in guild_invites}
     
 
     @commands.Cog.listener()
@@ -107,6 +144,37 @@ class ModerationCog(commands.Cog):
         #embed.add_field(name="Banned by", value=banned_by.mention, inline=False)
 
         # Send notification to admin channel
+        await admin_channel.send(embed=embed)
+
+    
+    @commands.Cog.listener()
+    async def on_invite_create(self, invite: discord.Invite) -> None:
+        """ Log the creation of an invite and relative data """
+        user_logger.info(f"User {invite.inviter} created an invite at {invite.created_at} for guild {invite.guild.name}")
+
+        # Check to see if on testing server
+        if invite.guild.id == mc.TEST_SERVER:
+            channel_id = mc.TEST_CHANNEL
+        else:
+            channel_id = mc.ADMIN_ONLY_CHANNEL
+
+        admin_channel = invite.guild.get_channel(channel_id)
+        timestamp = invite.created_at.strftime('%m-%d-%Y %H:%M:%S UTC')
+        expiration_timedelta = timedelta(seconds=invite.max_age)
+        expires_days = expiration_timedelta.days
+        expires_hours, expires_minutes = divmod(expiration_timedelta.seconds // 60, 60)
+
+        embed = discord.Embed(
+            title=f"Invite Created by: {invite.inviter}",
+            description="",
+            color=discord.Color.red()
+        )
+        embed.add_field(name="Display Name", value=invite.inviter.display_name, inline=False)
+        embed.add_field(name="Created At", value=timestamp, inline=False)
+        embed.add_field(name="Expiration", value=f"{expires_days}d {expires_hours}h {expires_minutes}m", inline=False)
+
+        self.invites_before_join[invite.guild.id] = {invite.code: invite}
+
         await admin_channel.send(embed=embed)
 
 
