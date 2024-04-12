@@ -31,7 +31,7 @@ class Select(discord.ui.Select):
                 label="Alumni", emoji="🎓", value=str(config.ALUMNI_ROLE_ID), description="*chuckles* I'm in danger!", default=False
             )
         ]
-        super().__init__(placeholder="Select your role/major", min_values=1, max_values=None, options=options)
+        super().__init__(placeholder="Select your role/major", min_values=1, max_values=None, options=options, custom_id="select_role")
 
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -84,7 +84,7 @@ class SelectStudentOrg(discord.ui.Select):
                 label="Society of Automotive Engineers", emoji="🏎️", value=str(config.SAE_SOCIETY_ROLE_ID), description="Advance Mobility Knowledge, Benefit Humanit", default=False
             )
         ]
-        super().__init__(placeholder="Select your student organization", min_values=1, max_values=None, options=options)
+        super().__init__(placeholder="Select your student organization", min_values=1, max_values=None, options=options, custom_id="select_student_org")
 
     async def callback(self, interaction: discord.Interaction) -> None:
         try:
