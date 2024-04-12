@@ -213,7 +213,7 @@ class VerifyCog(commands.Cog):
             logger.info(f"Verification email successfully sent to {email}")
             return True
         except requests.exceptions.RequestException as req_excep:
-            logger.warning(f"Failed to send verification email to {email}: {e}")
+            logger.warning(f"Failed to send verification email to {email}: {req_excep}")
             return False
 
 
