@@ -44,6 +44,8 @@ class SelectRoles(commands.Cog, name="Select Roles"):
                 await roles_message.edit(embed=embed, view=SelectView())
             else:
                 await channel.send(embed=embed, view=SelectView())
+
+            logger.info(f"select_cog successfully hooked.")
         except Exception as e:
             logger.critical(f"Error occurred while trying to update roles message: {e}")
 
