@@ -37,6 +37,7 @@ class Rylen(commands.Bot):
         @commands.has_permissions(administrator=True)
         async def load(ctx: commands.Context, extension_name: str) -> None:
             try:
+                await ctx.send(f"Loading {extension_name}, please wait...")
                 if '.' in extension_name:
                     await self.load_extension(extension_name)
                     await ctx.send(f"Loaded extension: {extension_name}")
@@ -55,6 +56,7 @@ class Rylen(commands.Bot):
         @commands.has_permissions(administrator=True)
         async def unload(ctx: commands.Context, extension_name: str) -> None:
             try:
+                await ctx.send(f"Unloading {extension_name}, please wait...")
                 if '.' in extension_name:
                     await self.unload_extension(extension_name)
                     await ctx.send(f"Unloaded extension: {extension_name}")
@@ -71,6 +73,7 @@ class Rylen(commands.Bot):
         @commands.has_permissions(administrator=True)
         async def reload(ctx: commands.Context, extension_name: str) -> None:
             try:
+                await ctx.send(f"Reloading {extension_name}, please wait...")
                 if '.' in extension_name:
                     await self.reload_extension(extension_name)
                     await ctx.send(f"Reloaded extension: {extension_name}")
