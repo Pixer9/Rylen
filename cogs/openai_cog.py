@@ -18,17 +18,16 @@ class OpenAICog(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.client = openai.OpenAI(api_key=aic.OPENAI_API_KEY)
-        self.model_engine = "gpt-3.5-turbo"
-        self.temperature = 0.5
+        self.model_engine = aic.DEFAULT_ENGINE
+        self.temperature = aic.TEMP_DEFAULT_LIMIT
         self.persona = str(next(iter(aic.bot_personalities)))
         self.avail_personas = [persona for persona in aic.bot_personalities]
-        self.conversation_memory = True
-        self.cache_size = 10
-        self.mention_user = True
+        self.conversation_memory = aic.DEFAULT_SHOULD_CACHE
+        self.cache_size = aic.DEFAULT_CACHE_SIZE
+        self.mention_user = aic.MENTION_USER
 
         self.rylen_triggers = ["Bad bot", "bad bot"]
-
-        self.csv_file_name = "bot_chat_logs.csv"
+        self.bot_name = bc.BOT_NAME
         self.csv_field_names = ["user_name", "user_id", "query_message", "response_message", "prompt_tokens", "completion_tokens", "total_tokens"]
 
         if not os.path.exists(self.chat_log_dir):
@@ -40,7 +39,7 @@ class OpenAICog(commands.Cog):
         """ Display an embed that contains all available OpenAI API commands """
         try:
             embed = discord.Embed(title="OpenAI Commands", colour=0x4f2d7f)
-            embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
+            embed.set_footer(text=f"{self.bot_name}: Tarleton Engineering Discord Bot")
 
             cog = self.bot.get_cog(self.__class__.__name__)
             
@@ -48,7 +47,7 @@ class OpenAICog(commands.Cog):
                 if command.name == "openai_commands":
                     continue
                 embed.add_field(name=command.name, value=command.help, inline=False)
-            embed.add_field(name=f"Talk to {bc.BOT_NAME}", value=f"Just @{bc.BOT_NAME} in the 'rylens-house' channel to chat it up.", inline=False)
+            embed.add_field(name=f"Talk to {self.bot_name}", value=f"Just @{self.bot_name} in the 'rylens-house' channel to chat it up.", inline=False)
             await ctx.send(embed=embed)
         except Exception as e:
             await ctx.send(f"Error: {e}")
@@ -63,7 +62,7 @@ class OpenAICog(commands.Cog):
         """
         message_parts = ctx.message.content.split()
         embed = discord.Embed(title="Temperature Updated", colour=0x4f2d7f)
-        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{self.bot_name}: Tarleton Engineering Discord Bot")
         try:
             temp = float(message_parts[1])
             if len(message_parts) < 2:
@@ -90,7 +89,7 @@ class OpenAICog(commands.Cog):
             return
         
         embed = discord.Embed(title="Personality Updated", colour=0x4f2d7f)
-        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{self.bot_name}: Tarleton Engineering Discord Bot")
 
         if persona not in self.avail_personas:
             embed.add_field(name="Invalid persona given", value="Please choose from the available personas.", inline=False)
@@ -121,7 +120,7 @@ class OpenAICog(commands.Cog):
             return
         
         embed = discord.Embed(title="Available Models", colour=0x4f2d7f)
-        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{self.bot_name}: Tarleton Engineering Discord Bot")
         #models = openai.Model.list()
         models = self.client.models.list().data
 
@@ -144,7 +143,7 @@ class OpenAICog(commands.Cog):
             return
         
         embed = discord.Embed(title="Model Update", colour=0x4f2d7f)
-        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{self.bot_nam}: Tarleton Engineering Discord Bot")
 
         #available_models = openai.Model.list()
         available_models = self.client.models.list().data
@@ -175,7 +174,7 @@ class OpenAICog(commands.Cog):
         self.conversation_memory = not self.conversation_memory
         embed = discord.Embed(title="Memory Cache", colour=0x4f2d7f)
         embed.add_field(name="Remember conversation history?", value="Yes" if self.conversation_memory else "No")
-        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{self.bot_name}: Tarleton Engineering Discord Bot")
         await ctx.send(embed=embed)
 
 
@@ -186,7 +185,7 @@ class OpenAICog(commands.Cog):
                 '!parameters'
         """
         embed = discord.Embed(title="Current OpenAI parameters for API calls", colour=0x4f2d7f)
-        embed.set_footer(text=f"{bc.BOT_NAME}: Tarleton Engineering Discord Bot")
+        embed.set_footer(text=f"{self.bot_name}: Tarleton Engineering Discord Bot")
         embed.add_field(name="Model Engine: ", value=self.model_engine, inline=False)
         embed.add_field(name="Model Persona: ", value=self.persona, inline=False)
         embed.add_field(name="Tepmerature: ", value=self.temperature, inline=False)
