@@ -76,22 +76,30 @@ class ModerationCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
-        """ Greet new members when they join """
+        """ Attempt to track which invite a user used when joining server """
+        user_logger.info(f"User: {member.name} - {member.id} - {member.display_name} has joined the server.")
+        
         guild = member.guild
-        guild_invites = await member.guild.invites()
 
         channel = discord.utils.get(guild.text_channels, name="general")
-        admin_channel = member.guild.get_channel(mc.ADMIN_ONLY_CHANNEL)
-
         if channel is not None:
-            user_logger.info(f"User {member.name} has joined the server.")
             await channel.send(f"{member.display_name} has arrived!")
+            admin_channel = member.guild.get_channel(mc.ADMIN_ONLY_CHANNEL)
 
-        for invite in guild_invites:
-            if invite.uses > self.invites_before_join[member.guild.id][invite.code].uses:
-                await admin_channel.send(f"{member.name} joined by using invite {invite.code} created by {invite.inviter}")
-                break
-        self.invites_before_join[member.guild.id] = {invite.code: invite for invite in guild_invites}
+        try:
+            current_invites = await member.guild.invites()
+            previous_invites = self.invites_before_join.get(guild.id, {})
+
+            for invite in current_invites:
+                previous_uses = previous_invites.get(invite.code, invite).uses
+                if invite.uses > previous_uses:
+                    if admin_channel:
+                        await admin_channel.send(f"{member.display_name} joined using invite {invite.code} created by {invite.inviter}.")
+                    break
+            
+            self.invites_before_join[guild.id] = {invite.code: invite for invite in current_invites}
+        except Exception as e:
+            logger.critical(f"Failed to process member join for {member.display_name}: {str(e)}")
     
 
     @commands.Cog.listener()
@@ -133,7 +141,17 @@ class ModerationCog(commands.Cog):
         user_logger.info(f"User {user} has been banned from {guild}")
 
         admin_channel = guild.get_channel(mc.ADMIN_ONLY_CHANNEL)
+        if not admin_channel:
+            logger.critical(f"Admin channel not found in guild: {guild.name}")
+            return
     
+        try:
+            audit_logs = await guild.audit_logs(limit=5, action=discord.AuditLogAction.ban).flatten()
+            entry = next((log for log in audit_logs if log.target.id == user.id), None)
+        except Exception as e:
+            logger.critical(f"Failed to access audit logs: {str(e)}")
+            entry = None
+
         embed = discord.Embed(
             title=f"User Banned: {user.name}",
             description=f"User {user.mention} has been banned from the server",
@@ -141,7 +159,13 @@ class ModerationCog(commands.Cog):
         )
 
         embed.set_thumbnail(url=user.avatar.url if user.avatar else user.default_avatar.url)
-        #embed.add_field(name="Banned by", value=banned_by.mention, inline=False)
+        
+        if entry:
+            embed.add_field(name="Banned by", value=entry.user.mention, inline=False)
+            embed.add_field(name="Reason", value=entry.reason or "No reason provided", inline=False)
+        else:
+            embed.add_field(name="Banned by", value="Could not retrieve moderator", inline=False)
+            embed.add_field(name="Reason", value="No reason provided", inline=False)
 
         # Send notification to admin channel
         await admin_channel.send(embed=embed)
@@ -171,6 +195,7 @@ class ModerationCog(commands.Cog):
         )
         embed.add_field(name="Display Name", value=invite.inviter.display_name, inline=False)
         embed.add_field(name="Created At", value=timestamp, inline=False)
+        embed.add_field(name="Invite Code", value=invite.code, inline=False)
         embed.add_field(name="Expiration", value=f"{expires_days}d {expires_hours}h {expires_minutes}m", inline=False)
 
         self.invites_before_join[invite.guild.id] = {invite.code: invite}
@@ -282,7 +307,7 @@ class ModerationCog(commands.Cog):
                 await self.add_event(formatted_date, formatted_time, title, location, url)
 
         except requests.exceptions.RequestException as request_exc:
-            logger.critical(f"Requestion Exception: {request_exc}")
+            logger.critical(f"Request Exception: {request_exc}")
         except (ValueError, KeyError) as error:
             logger.critical(f"JSON Error: {error}")
         except Exception as e:
